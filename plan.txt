@@ -1,0 +1,189 @@
+
+Part 1 : the differences between python 2 and 3
+
+Chapter 0: which python 3 ?
+
+Chapter 1 : the small things
+
+print, iterkeys, map, division, builtin, long, syntax,  exceptions, inheritance, true, false
+
+Chapter 2: imports
+
+Name changes, absolute imports
+
+Chapter 3: bytes and text handling
+
+Chapter 4: deprecation
+
+Stdlib, 3rd party
+
+Chapter 5: subtil traps
+
+Pickle, ssl, async/await
+
+Chapter 6:  c extensions
+
+Part 2 : how to migrate
+
+Chapter 5 : how NOT to migrate
+
+Pypy, nuikta, docker, vendoring, pex, pinpoint dependancies
+
+Chapter 5 bis: prepare your project
+
+Get rid of *.
+
+Get rid of old style class.
+
+Write test if you can. Pytest.
+
+Setup linters and text formatter.
+
+Decide if you want a compatible code base or a migration
+
+Can you use mypy ?
+
+Don't do anything else while migrating.
+
+Stop all python 2 new project.
+
+Chapter 6: low hanging fruits
+
+2 to 3, from future, manuall fixing
+
+Chapter 7 : Chapter restructuring the project
+
+Imports, layout,
+
+Chapter 7: compatible code base
+
+Python future, backports
+
+Chapter 8: fighting deprecation
+
+What to replace with what ?
+
+Chapter 9 : bytes and str
+
+Pathlib, open, network, u, future...
+
+Chapter 10: new features to take advantage of
+
+Fstring
+
+Asyncio
+
+Statistic
+
+Debug
+
+Dataclass
+
+
+
+Migrate from python 2 to 3
+
+This book assumes you are already commited to convert your code to python 3, hence, it will not try to convince you to do so.
+
+Instead, the book will be divided in two parts.
+
+The first one lists and explains as much differences as it can between version 2 and 3. This will allow you to understand not only what's going on.
+
+The second one describes a step by step strategy, with suggested tooling, to actually performs the migration.
+
+If you read the content from start to finish, it will seems overwhelming. Fortunatly, most projects  don't actually need to apply half of the advices given here. The vast majority of code bases can be just tinkered with, hacking on it until it works, sampling solutions from these pages on the way.
+
+If you are in a rush, a surprisingly high number of projects can get away with just chapter 6.
+
+.. toctree::
+   :maxdepth: 2
+
+   differences
+   strings
+   datatypes
+   numeric
+   (many more documents listed here)
+
+Part 1 : the differences between python 2 and 3
+
+Chapter 0: which python 3 ?
+
+Chapter 1 : the small things
+
+print, iterkeys, map, division, builtin, long, syntax,  exceptions, inheritance, true, false
+
+Chapter 2: imports
+
+Name changes, absolute imports
+
+Chapter 3: bytes and text handling
+
+Chapter 4: deprecation
+
+Stdlib, 3rd party
+
+Chapter 5: subtil traps
+
+Pickle, ssl, async/await
+
+Chapter 6:  c extensions
+
+Part 2 : how to migrate
+
+Chapter 5 : how NOT to migrate
+
+Pypy, nuikta, docker, vendoring, pex, pinpoint dependancies
+
+Chapter 5 bis: prepare your project
+
+Get rid of *.
+
+Get rid of old style class.
+
+Write test if you can. Pytest.
+
+Setup linters and text formatter.
+
+Decide if you want a compatible code base or a migration
+
+Can you use mypy ?
+
+Don't do anything else while migrating.
+
+Stop all python 2 new project.
+
+Chapter 6: low hanging fruits
+
+2 to 3, from future, manuall fixing
+
+Chapter 7 : Chapter restructuring the project
+
+Imports, layout,
+
+Chapter 7: compatible code base
+
+Python future, backports
+
+Chapter 8: fighting deprecation
+
+What to replace with what ?
+
+Chapter 9 : bytes and str
+
+Pathlib, open, network, u, future...
+
+Chapter 10: new features to take advantage of
+
+Fstring
+
+Asyncio
+
+Statistic
+
+Debug
+
+Dataclass
+
+
+
+https://authorunlimited.com/blog/50-ways-to-promote-your-book

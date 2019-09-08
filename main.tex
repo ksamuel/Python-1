@@ -1,0 +1,128 @@
+\documentclass[a4paper, 12pt]{book}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
+
+\usepackage{listings}
+
+\setlength\parindent{0pt}
+\setlength{\parskip}{10pt plus 1pt minus 2pt}
+
+\title{%
+  Python += 1 \\
+  \large Porting legacy code from Python 2 to Python 3
+}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    filecolor=magenta,
+    urlcolor=blue,
+}
+
+\author{Kevin Samuel}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\frontmatter
+
+\tableofcontents
+
+\include{chapters/intro}
+
+\mainmatter
+
+\part{The differences between Python 2 and 3}
+
+\include{chapters/which_python}
+
+\chapter{Chapter 1 : the small things}
+
+print, iterkeys, map, division, builtin, long, syntax,  exceptions, inheritance, true, false
+
+\chapter{Chapter 2: imports}
+
+Name changes, absolute imports
+
+\chapter{Chapter 3: bytes and text handling}
+
+\chapter{Chapter 4: deprecation}
+
+\chapter{Stdlib, 3rd party}
+
+\chapter{Chapter 5: subtil traps}
+
+Pickle, ssl, async/await, old style classes
+
+\chapter{Chapter 6:  c extensions}
+
+\part{Part 2 : how to migrate}
+
+\chapter{Chapter 5 : how NOT to migrate}
+
+Pypy, nuikta, docker, vendoring, pex, pinpoint dependancies
+
+\chapter{Chapter 5 bis: prepare your project}
+
+Get rid of *.
+
+Get rid of old style class.
+
+Write test if you can. Pytest.
+
+Setup linters and text formatter.
+
+Decide if you want a compatible code base or a migration
+
+Can you use mypy ?
+
+Don't do anything else while migrating.
+
+Stop all python 2 new project.
+
+\chapter{Chapter 6: low hanging fruits}
+
+2 to 3, from future, manuall fixing
+
+\chapter{Chapter 7 : Chapter restructuring the project}
+
+Imports, layout,
+
+\chapter{Chapter 7: compatible code base}
+
+Python future, backports
+
+\chapter{Chapter 8: fighting deprecation}
+
+What to replace with what ?
+
+\chapter{Chapter 9 : bytes and str}
+
+Pathlib, open, network, u, future...
+
+\chapter{Chapter 10: new features to take advantage of}
+
+Fstring
+
+Asyncio
+
+Statistic
+
+Debug
+
+Dataclass
+
+
+
+
+
+\appendix
+
+\backmatter %bibliography
+
+\end{document}
