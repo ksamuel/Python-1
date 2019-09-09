@@ -1,10 +1,10 @@
-\chapter{Which Python ?}
+\chapter{Which Python version?}
 
 You should be porting from Python 2.7, there is no doubt about this. After all, 2.6 support has ended in 2013.
 
 However, I had a client in 2018 that was still using a code base with idioms dating from Python 2.5, so there may be some of you that have a few pieces of very old Python out there, espacially if you use very old Unix systems.
 
-There is no use to try to migrate from an earlier version directly to Python 3. So if you are unlucky enough to have inherited a very deprecated legacy code base, you first mission will be to migrate to 2.7. This version being forward compatible with older ones, you should be fine: the bulk of the work will probably be your dependances and clearing a few odities such as in classes and try/excepts.
+There is no use to try to migrate from an earlier version directly to Python 3. So if you are unlucky enough to have inherited a very deprecated legacy code base, your first mission will be to migrate to 2.7. This version being forward compatible with older ones, you should be fine: the bulk of the work will probably be your dependances and clearing a few odities such as in classes and try/excepts.
 
 Before you start, you need to decide which Python 3 version you are going to target. Since you are migrating to an imcompatible version anyway, I advice to choose the highest version your technical constraints allow you to.
 

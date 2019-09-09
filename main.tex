@@ -1,4 +1,4 @@
-\documentclass[a4paper, 12pt]{book}
+\documentclass[a4paper, 10pt]{book}
 \usepackage[utf8]{inputenc}
 \usepackage{ae,lmodern}
 \usepackage[T1]{fontenc}
@@ -32,6 +32,14 @@
   {\end{list}\end{mdframed}\par
 }
 
+
+\newenvironment{py}{%
+  \begin{lstlisting}[language=python]
+}
+{%
+  \end{lstlisting}
+}
+
 \title{
   Python += 1 \\
   \large Porting legacy code from Python 2 to Python 3
@@ -56,9 +64,7 @@
 
 \include{chapters/which_python}
 
-\chapter{Chapter 1 : the small things}
-
-print, iterkeys, map, division, builtin, long, syntax,  exceptions, inheritance, true, false
+\include{chapters/the_small_things}
 
 \chapter{Chapter 2: imports}
 
@@ -120,7 +126,9 @@ What to replace with what ?
 
 Pathlib, open, network, u, future...
 
-\chapter{Chapter 10: new features to take advantage of}
+\chapter{New features to take advantage of}
+
+print()
 
 Fstring
 

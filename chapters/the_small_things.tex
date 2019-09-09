@@ -1,0 +1,57 @@
+
+\chapter{The small things}
+
+80% of porting your Python 2 code to Python 3 will be about little details. Thankfully, we'll see later than it can be mostly automated.
+
+\section{print}
+
+You probably already know this, \lstinline{print} used to be a keyword, and is now a function.
+
+For simple display, this mean we go from this:
+
+\begin{py}
+print "Howdy, Earth!"
+\end{py}
+
+To:
+
+\begin{py}
+print("Howdy, Earth!")
+\end{py}
+
+And since \lstinline{print} \href{https://www.python.org/dev/peps/pep-0214/}{does fancy things}:
+
+\begin{py}
+with open('out.log') as f:
+    print >>f, "This redirects to a log file"
+print "Ending with a coma skips the line break",
+\end{py}
+
+You may have to use:
+
+\begin{py}
+with open('out.log') as f:
+    print("This redirects to a log file", file=f)
+print("Ending with a coma skips the line break", end="")
+\end{py}
+
+Starting from Python 2.7, you can turn on the Python 3 behavior using:
+
+\begin{py}
+from __future__ import print_function
+\end{py}
+
+At the begining of a file. It will be limited to that file and needs to be repeated.
+
+I advice you to do this as early has possible, espacially since the muscle memory from typing the old syntax of \lstinline{print} is probably what will take you the most time to port! Besides, the function version has some additional nice features (see the chapter \textquote{New features to take advantage of}).
+
+If you really don't want to do change all your prints yet, and don't want to use __future__ in every file, you can define:
+
+\begin{py}
+printf = getattr(__builtins__, 'print')
+print("Look Ma, print() function without __future__!")
+\end{py}
+
+But really, \lstinline{__future__} is your friend.
+
+print, iterkeys, map, division, builtin, long, syntax,  exceptions, inheritance, true, false
