@@ -22,23 +22,21 @@
 }
 
 \newenvironment{warning}{
-
-  \par\begin{mdframed}[linewidth=2pt,linecolor=red]%
-  \begin{list}{}{%
-    \leftmargin=1cm
-    \labelwidth=\leftmargin}
-    \item[\Large\ding{43}]
-  }
-  {\end{list}\end{mdframed}\par
+  \par
+  \begin{mdframed}[linewidth=2pt,linecolor=red]
+    \begin{list}{}{
+      \leftmargin=1cm
+      \labelwidth=\leftmargin
+    }
+      \item[\Large\ding{43}]
+}
+{
+    \end{list}
+  \end{mdframed}\par
 }
 
+\lstnewenvironment{py}[1][]{\lstset{language=python}}{}
 
-\newenvironment{py}{%
-  \begin{lstlisting}[language=python]
-}
-{%
-  \end{lstlisting}
-}
 
 \title{
   Python += 1 \\
