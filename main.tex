@@ -1,25 +1,40 @@
 \documentclass[a4paper, 12pt]{book}
 \usepackage[utf8]{inputenc}
+\usepackage{ae,lmodern}
+\usepackage[T1]{fontenc}
 \usepackage{hyperref}
-
+\usepackage{csquotes}
+\usepackage{mdframed}
+\usepackage{pifont}
 \usepackage{graphicx}
-\graphicspath{ {./images/} }
+\graphicspath{{./images/}}
 
 \usepackage{listings}
 
 \setlength\parindent{0pt}
 \setlength{\parskip}{10pt plus 1pt minus 2pt}
 
-\title{%
-  Python += 1 \\
-  \large Porting legacy code from Python 2 to Python 3
-}
-
 \hypersetup{
     colorlinks=true,
     linkcolor=black,
     filecolor=magenta,
     urlcolor=blue,
+}
+
+\newenvironment{warning}{
+
+  \par\begin{mdframed}[linewidth=2pt,linecolor=red]%
+  \begin{list}{}{%
+    \leftmargin=1cm
+    \labelwidth=\leftmargin}
+    \item[\Large\ding{43}]
+  }
+  {\end{list}\end{mdframed}\par
+}
+
+\title{
+  Python += 1 \\
+  \large Porting legacy code from Python 2 to Python 3
 }
 
 \author{Kevin Samuel}
