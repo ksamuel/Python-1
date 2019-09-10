@@ -6,20 +6,16 @@
     description={A callable in Python is anything you can call, meaning you can use \lstinline{()} right after the name to get an effect. Any object with the \lstinline{__call__()} method is considered a callable, but on the day to day job, the callables you will meet are mostly functions (e.g: \lstinline{len} is a callable) or classes (e.g: \lstinline{OrderedDict} from the \lstinline{collections} module is a callable).}
 }
 
-\newglossaryentry{callables}
+\newglossaryentry{generator}
 {
-    name=callables,
-    description={See callable}
+    name=generator,
+    description={A generator is specific type of \gls{iterable} that doesn't contains any element: instead, it generates them on the fly when you read it. Generators are used to save memory, and sometimes CPU, as they don't have to start by creating all the elements you can get from them. Reading a generator is usually done simply by using a \lstinline{for} loop on them. When you do so, it starts producing the elements you will process in the loop, only one at a time. This is transparent, and feels like you are looping an a list or a tuple. The difference is that generators can only be read once. }
 }
+
 
 \newglossaryentry{iterable}
 {
     name=iterable,
+    plural=iterables,
     description={An iterable in Python is anything you can iterate on, meaning you can use a \lstinline{for} loop on it. Any object with the \lstinline{__iter__()} method is considered a callable. The most common iterables are lists, tuples, dicts, strings, memory views and generators.}
-}
-
-\newglossaryentry{iterables}
-{
-    name=iterables,
-    description={See iterable}
 }
