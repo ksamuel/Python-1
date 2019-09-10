@@ -117,10 +117,10 @@ They save the same amount of resources, but can be read multiple times.
 
 However, in Python 3:
 
-\begin{list}
-\item \lstinline{iter*} and \lstinline{view*} methods have been removed
-\item \lstinline{keys()}, \lstinline{values()} and \lstinline{items()} now return memory views.
-\end{list}
+\begin{itemize}
+    \item \lstinline{iter*} and \lstinline{view*} methods have been removed;
+    \item \lstinline{keys()}, \lstinline{values()} and \lstinline{items()} now return memory views.
+\end{itemize}
 
 So when you migrate, you want to replace all \lstinline{iter*} and \lstinline{view*} methods by regular \lstinline{keys()}, \lstinline{values()} and \lstinline{items()}. Obviously, if your code will run both in Python 2 and 3 for a while, the Python 2 code will become less performant. You can create a function to avoid this:
 
@@ -139,7 +139,7 @@ And use that instead of calling the methods directly.
 
 But don't be too hasty to do this, as in the second part of the book we will see some lirbaries that already offer those kind of tools.
 
-One other gotcha : memory views cannot be used exactly like lists. E.G: you cannot index them (\lstnewenvironment{population.viewitems()}[0] won't work), use \lstinline{append()} on them or add them to another list.
+One other gotcha : memory views cannot be used exactly like lists. E.G: you cannot index them (\lstinline{population.viewitems()[0]} won't work), use \lstinline{append()} on them or add them to another list.
 
 If your code need to do that, convert them to lists before:
 
@@ -185,10 +185,10 @@ Like with \lstinline{print()}, I advise you to do this as early as possible.
 
 Along with this change, Python 2 removed two things that I doubt you will miss but it's always good to mention.
 
-\begin{list}
+\begin{itemize}
     \item The \lstinline{<>} operator. It was exactly like \lstinline{!=}. Just do a search and replace for this, really.
     \item The \lstinline{long} number type. When you created a big integer, Python turned it into a new type which was neither \lstinline{int} nor \lstinline{float}, and appeared suffixed with an L in the terminal (e.g: 9999999999999999999L). This is an implementation detail and you should not worry about it unless you used to parse it manually, in which case, do it in a condition.
-\end{list}
+\end{itemize}
 
 
 \section{Builtins}

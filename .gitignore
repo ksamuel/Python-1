@@ -8,3 +8,5 @@
 *.out
 *.toc
 .fuse*
+*.glo
+*.ist
