@@ -4,3 +4,4 @@
 - Trouver un moyen d'exporter en epub
 - Trouver un moyen de rendre le copier/coller sur PDF correct
 - Insérer des QRcodes et liens dans le livre pour chaque snippet
+- chapter on dependancies

@@ -1,7 +1,7 @@
 
 \chapter{The small things}
 
-80% of porting your Python 2 code to Python 3 will be about little details. Thankfully, we'll see later than it can be mostly automated.
+80\% of porting your Python 2 code to Python 3 will be about little details. Thankfully, we'll see later than it can be mostly automated.
 
 \section{print}
 
@@ -23,7 +23,7 @@ print("Howdy, Earth!")
 And since \lstinline{print} \href{https://www.python.org/dev/peps/pep-0214/}{does fancy things}:
 
 \begin{py}
-with open('out.log') as f:
+with open('out.log', 'w') as f:
     print >>f, "This redirects to a log file"
 print "Ending with a coma skips the line break",
 \end{py}
@@ -31,7 +31,7 @@ print "Ending with a coma skips the line break",
 You may have to use:
 
 \begin{py}
-with open('out.log') as f:
+with open('out.log', 'w') as f:
     print("This redirects to a log file", file=f)
 print("Ending with a coma skips the line break", end="")
 \end{py}
@@ -57,19 +57,148 @@ But really, \lstinline{__future__} is your friend.
 
 \section{Dictionaries}
 
+To iterate on keys, values or key/value pairs, you need to use special methods in Python:
+
+\begin{py}
+>>> population = {
+...     "Octopod": 2 - 1,
+...     "Xenomorph": "too many",
+...     "Goa'uld": 0,
+...     "Wookie": "no enough" ,
+...     "Andalite": 2,
+...     "Mondoshawan": "?",
+... }
+>>>
+>>> print(population.keys())
+... print(population.values())
+... print(population.keys())
+...
+['Wookie', "Goa'uld", 'Octopod', 'Xenomorph', 'Andalite', 'Mondoshawan']
+['no enough', 0, 1, 'too many', 2, '?']
+['Wookie', "Goa'uld", 'Octopod', 'Xenomorph', 'Andalite', 'Mondoshawan']
+\end{py}
+
+Because those methods produce lists, an operation that consume a lot of memory and CPU for a simple iteration, alternatives were provided.
+
+The \lstinline{iter*} methods return a generator, sparing the need to allocate arrays:
+
+\begin{py}
+>>> print(population.iterkeys())
+... print(population.itervalues())
+... print(population.iterkeys())
+<dictionary-keyiterator object at 0x7f56340a0628>
+<dictionary-valueiterator object at 0x7f56340a0628>
+<dictionary-keyiterator object at 0x7f56340a0628>
+\end{py}
+
+They are iterable as well, so you can use a \lstinline{for} loop on them just like with lists, but but they can only be read once:
+
+\begin{py}
+>>> names = population.iterkeys()
+>>> list(names)
+['Wookie', "Goa'uld", 'Octopod', 'Xenomorph', 'Andalite', 'Mondoshawan']
+>>> list(names)
+[]
+\end{py}
+
+A better solution was found using memory views:
+
+\begin{py}
+>>> print(population.viewitems())
+... print(population.viewvalues())
+... print(population.viewkeys())
+dict_items([('Wookie', 'no enough'), ("Goa'uld", 0), ('Octopod', 1), ('Xenomorph', 'too many'), ('Andalite', 2), ('Mondoshawan', '?')])
+dict_values(['no enough', 0, 1, 'too many', 2, '?'])
+dict_keys(['Wookie', "Goa'uld", 'Octopod', 'Xenomorph', 'Andalite', 'Mondoshawan'])
+
+\end{py}
+
+They save the same amount of resources, but can be read multiple times.
+
+However, in Python 3:
+
+\begin{list}
+\item \lstinline{iter*} and \lstinline{view*} methods have been removed
+\item \lstinline{keys()}, \lstinline{values()} and \lstinline{items()} now return memory views.
+\end{list}
+
+So when you migrate, you want to replace all \lstinline{iter*} and \lstinline{view*} methods by regular \lstinline{keys()}, \lstinline{values()} and \lstinline{items()}. Obviously, if your code will run both in Python 2 and 3 for a while, the Python 2 code will become less performant. You can create a function to avoid this:
+
+\begin{py}
+import sys
+
+if sys.version_info.major < 3:
+    def dict_items(d):
+        return d.viewitems()
+else:
+    def dict_items(d):
+        return d.items()
+\end{py}
+
+And use that instead of calling the methods directly.
+
+But don't be too hasty to do this, as in the second part of the book we will see some lirbaries that already offer those kind of tools.
+
+One other gotcha : memory views cannot be used exactly like lists. E.G: you cannot index them (\lstnewenvironment{population.viewitems()}[0] won't work), use \lstinline{append()} on them or add them to another list.
+
+If your code need to do that, convert them to lists before:
+
+\begin{py}
+stats = list(population.viewitems())
+\end{py}
+
 \section{Operations}
 
-// vs /
+Coders doing a lot of maths will quickly notice de division operator has changed.
 
->
+Where in Python 2 you used to do:
 
-<> disapear
+\begin{py}
+>>> 4 / 3
+1
+>>> float(4) / 3  # or you may see operator.truediv(4, 3)
+1.3333333333333333
+\end{py}
 
-Long disapear
+In Python 3, the default division results in a float:
 
-\section{Generators}
+\begin{py}
+>>> 4 / 3
+1.3333333333333333
+>>> 4 // 3  # if you want the old behavior, use this new operator
+\end{py}
+
+Now it's a trap because \lstinline{4 // 3} is valid Python 2, but it's doesn't do the same thing:
+
+\begin{py}
+>>> 4 // 3
+1
+\end{py}
+
+Fortunatly, you can activate the behavior of Python 3 in Python 2 by adding at the top of each file:
+
+\begin{py}
+from __future__ import division
+\end{py}
+
+Like with \lstinline{print()}, I advise you to do this as early as possible.
+
+Along with this change, Python 2 removed two things that I doubt you will miss but it's always good to mention.
+
+\begin{list}
+    \item The \lstinline{<>} operator. It was exactly like \lstinline{!=}. Just do a search and replace for this, really.
+    \item The \lstinline{long} number type. When you created a big integer, Python turned it into a new type which was neither \lstinline{int} nor \lstinline{float}, and appeared suffixed with an L in the terminal (e.g: 9999999999999999999L). This is an implementation detail and you should not worry about it unless you used to parse it manually, in which case, do it in a condition.
+\end{list}
+
 
 \section{Builtins}
+
+Builtins are callables, mostly functions, that are available without import. e.g: \lstinline{print()} and \lstinline{len()} are builtins.
+
+reduce
+xrange
+map
+filter
 
 \section{Syntax}
 
