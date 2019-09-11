@@ -40,7 +40,12 @@
   \end{mdframed}\par
 }
 
-\lstnewenvironment{py}[1][]{\lstset{language=python}}{}
+
+\lstnewenvironment{py2}[1][]{\lstset{language=python, caption="Python 2"}}{}
+
+\lstnewenvironment{py3}[1][]{\lstset{language=python, caption="Python 3"}}{}
+
+\lstnewenvironment{py2and3}[1][]{\lstset{language=python, caption="Python 2 and 3"}}{}
 
 \title{
   Python += 1 \\
@@ -65,6 +70,8 @@
 \part{The differences between Python 2 and 3}
 
 \include{chapters/which_python}
+
+\include{chapters/builtins}
 
 \include{chapters/the_small_things}
 

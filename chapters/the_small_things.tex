@@ -1,65 +1,16 @@
 
-\chapter{The small things}
+\chapter{It's the little things}
+
+As I said in the previous chapter, the big
 
 80\% of porting your Python 2 code to Python 3 will be about little details. Thankfully, we'll see later than it can be mostly automated, so don't rush trying to change all your code base yet.
 
-\section{print}
-
-You probably already know this, \lstinline{print} used to be a keyword, and is now a function.
-
-For simple display, this mean we go from this:
-
-\begin{py}
-print "Howdy, Earth!"
-\end{py}
-
-
-To:
-
-\begin{py}
-print("Howdy, Earth!")
-\end{py}
-
-And since \lstinline{print} \href{https://www.python.org/dev/peps/pep-0214/}{does fancy things}:
-
-\begin{py}
-with open('out.log', 'w') as f:
-    print >>f, "This redirects to a log file"
-print "Ending with a coma skips the line break",
-\end{py}
-
-You may have to use:
-
-\begin{py}
-with open('out.log', 'w') as f:
-    print("This redirects to a log file", file=f)
-print("Ending with a coma skips the line break", end="")
-\end{py}
-
-Starting from Python 2.7, you can turn on the Python 3 behavior using:
-
-\begin{py}
-from __future__ import print_function
-\end{py}
-
-At the begining of a file. It will be limited to that file and needs to be repeated.
-
-I advice you to do this as early has possible, espacially since the muscle memory from typing the old syntax of \lstinline{print} is probably what will take you the most time to port! Besides, the function version has some additional nice features (see the chapter \textquote{New features to take advantage of}).
-
-If you really don't want to do change all your prints yet, and don't want to use \lstinline{__future__} in every file, you can define:
-
-\begin{py}
-printf = getattr(__builtins__, 'print')
-print("Look Ma, print() function without __future__!")
-\end{py}
-
-But really, \lstinline{__future__} is your friend.
 
 \section{Dictionaries}
 
 To iterate on keys, values or key/value pairs, you need to use special methods in Python:
 
-\begin{py}
+\begin{py2}
 >>> population = {
 ...     "Octopod": 2 - 1,
 ...     "Xenomorph": "too many",
@@ -76,34 +27,34 @@ To iterate on keys, values or key/value pairs, you need to use special methods i
 ['Wookie', "Goa'uld", 'Octopod', 'Xenomorph', 'Andalite', 'Mondoshawan']
 ['no enough', 0, 1, 'too many', 2, '?']
 ['Wookie', "Goa'uld", 'Octopod', 'Xenomorph', 'Andalite', 'Mondoshawan']
-\end{py}
+\end{py2}
 
 Because those methods produce lists, an operation that consume a lot of memory and CPU for a simple iteration, alternatives were provided.
 
 The \lstinline{iter*} methods return a generator, sparing the need to allocate arrays:
 
-\begin{py}
+\begin{py2}
 >>> print(population.iterkeys())
 ... print(population.itervalues())
 ... print(population.iterkeys())
 <dictionary-keyiterator object at 0x7f56340a0628>
 <dictionary-valueiterator object at 0x7f56340a0628>
 <dictionary-keyiterator object at 0x7f56340a0628>
-\end{py}
+\end{py2}
 
 They are \gls{iterable} as well, so you can use a \lstinline{for} loop on them just like with lists, but but they can only be read once:
 
-\begin{py}
+\begin{py2}
 >>> names = population.iterkeys()
 >>> list(names)
 ['Wookie', "Goa'uld", 'Octopod', 'Xenomorph', 'Andalite', 'Mondoshawan']
 >>> list(names)
 []
-\end{py}
+\end{py2}
 
 A better solution was found using memory views:
 
-\begin{py}
+\begin{py2}
 >>> print(population.viewitems())
 ... print(population.viewvalues())
 ... print(population.viewkeys())
@@ -111,7 +62,7 @@ dict_items([('Wookie', 'no enough'), ("Goa'uld", 0), ('Octopod', 1), ('Xenomorph
 dict_values(['no enough', 0, 1, 'too many', 2, '?'])
 dict_keys(['Wookie', "Goa'uld", 'Octopod', 'Xenomorph', 'Andalite', 'Mondoshawan'])
 
-\end{py}
+\end{py2}
 
 They save the same amount of resources, but can be read multiple times.
 
@@ -124,7 +75,7 @@ However, in Python 3:
 
 So when you migrate, you want to replace all \lstinline{iter*} and \lstinline{view*} methods by regular \lstinline{keys()}, \lstinline{values()} and \lstinline{items()}. Obviously, if your code will run both in Python 2 and 3 for a while, the Python 2 code will become less performant. You can create a function to avoid this:
 
-\begin{py}
+\begin{py2and3}
 import sys
 
 if sys.version_info.major < 3:
@@ -133,7 +84,7 @@ if sys.version_info.major < 3:
 else:
     def dict_items(d):
         return d.items()
-\end{py}
+\end{py2and3}
 
 And use that instead of calling the methods directly.
 
@@ -143,9 +94,9 @@ One other gotcha : memory views cannot be used exactly like lists. E.G: you cann
 
 If your code need to do that, convert them to lists before:
 
-\begin{py}
+\begin{py3}
 stats = list(population.viewitems())
-\end{py}
+\end{py3}
 
 \section{Operations}
 
@@ -153,33 +104,33 @@ Coders doing a lot of maths will quickly notice de division operator has changed
 
 Where in Python 2 you used to do:
 
-\begin{py}
+\begin{py2}
 >>> 4 / 3
 1
 >>> float(4) / 3  # or you may see operator.truediv(4, 3)
 1.3333333333333333
-\end{py}
+\end{py2}
 
 In Python 3, the default division results in a float:
 
-\begin{py}
+\begin{py3}
 >>> 4 / 3
 1.3333333333333333
 >>> 4 // 3  # if you want the old behavior, use this new operator
-\end{py}
+\end{py3}
 
 Now it's a trap because \lstinline{4 // 3} is valid Python 2, but it's doesn't do the same thing:
 
-\begin{py}
+\begin{py2}
 >>> 4 // 3
 1
-\end{py}
+\end{py2}
 
 Fortunatly, you can activate the behavior of Python 3 in Python 2 by adding at the top of each file:
 
-\begin{py}
+\begin{py2and3}
 from __future__ import division
-\end{py}
+\end{py2and3}
 
 Like with \lstinline{print()}, I advise you to do this as early as possible.
 
@@ -190,166 +141,6 @@ Along with this change, Python 2 removed two things that I doubt you will miss b
     \item The \lstinline{long} number type. When you created a big integer, Python turned it into a new type which was neither \lstinline{int} nor \lstinline{float}, and appeared suffixed with an L in the terminal (e.g: 9999999999999999999L). This is an implementation detail and you should not worry about it unless you used to parse it manually, in which case, do it in a condition.
 \end{itemize}
 
-\section{Builtins}
-
-Builtins are \glspl{callable}, mostly functions, that are available without import. e.g: \lstinline{print()} and \lstinline{len()} are builtins. They are all in the \lstinline{__builtins__} module (which is always automatically imported and available), and if you call \lstinline{dir()} on it, you'll see it's been changed in Python 3.
-
-\subsection{long()}
-
-Obviously, the \lstinline{long()} function is gone, since the type is not used anymore. If you used this function, replace it with \lstinline{int()}.
-
-\subsection{apply()}
-
-Another easy one to get rid of is \lstinline{apply()}, which apply a function to a list (and optionally dict) of arguments: tt's been deprecated since Python 2.3. If you used it for some reason, replace it with unpacking.
-
-Old way that works in 2.7, but not in 3:
-
-\begin{py}
->>> def marvelous_function(param1, param2, like_param2_but_better):
-...    print(param1)
-...    print(param2)
-...    print(like_param2_but_better)
-...
->>> positional_params = ['First', 'Second']
->>> keyword_argument_params = {"like_param2_but_better": "Best"}
->>> apply(marvelous_function, positional_params, keyword_argument_params)
-First
-Second
-Best
-\end{py}
-
-New way, that works everywhere:
-
-\begin{py}
->>> marvelous_function(*positional_params, **keyword_argument_params)
-First
-Second
-Best
-\end{py}
-
-\subsection{execfile()}
-
-Then you got \lstinline{execfile("some_module.py")}, which you can just replace with \lstinline{exec(open("some_module.py").read())}. Although if you were doing that, there was some black magic going on, and an import would be cleaner.
-
-\subsection{cmp()}
-
-\lstinline{cmp()} is more complicated and will require you to change the way you sort things in Python.
-
-It's common for a programming language to request a callback that will tell a sorting function if something is greater, smaller or equal. One way of doing it is to expect the function to return 1, -1 or 0, and this is the old way of doing it in Python.
-
-E.G, sorting string by lenght using the deprecated method:
-
-\begin{py}
->>> victories = [
-...     "Yippee ki-yay",
-...     "Kawabunga",
-...     "Kamehameha",
-... ]
->>> def compare(first, second):
-...     if len(first) > len(second):
-...         return 1
-...     elif len(first) < len(second):
-...         return -1
-...     else:
-...         return 0
-...
->>> sorted(victories, cmp=compare)
-['Kawabunga', 'Kamehameha', 'Yippee ki-yay']
-\end{py}
-
-However, a more modern and easy method has been introduced in Python 2.4: the callback now just return the element on which to sort, and Python will use the natural ordering of the object. The new callback is passed through the \lstinline{key} parameter:
-
-\begin{py}
->>> sorted(victories, key=len)
-['Kawabunga', 'Kamehameha', 'Yippee ki-yay']
-\end{py}
-
-Hence, \lstinline{cmp()} has been removed from Python 3. Ideally, you should convert your code to using this easier sorting process, espacially since it works in Python 2.7. If you want to avoid that, you can use \lstinline{functools.cmp_to_key} to convert and old style sorting callback, to a new style sorting callback:
-
-\begin{py}
->>> from functools import cmp_to_key
->>> sorted(victories, key=cmp_to_key(compare))
-['Kawabunga', 'Kamehameha', 'Yippee ki-yay']
-\end{py}
-
-
-\subsection{map() and filter()}
-
-\lstinline{map()} and \lstinline{filter()} dumbed down version of functional programming primitives. \lstinline{map()}, in Python 2, apply a function to all element in an \gls{iterable}, and return a new list with the result. \lstinline{filter()} also apply a function to all elements, but return a new list containing only the elements for which the function returned \lstinline{True}.
-
-E.G, in Python 2:
-
-\begin{py}
->>> numbers = range(10)
->>> numbers
-[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
->>> def is_even(num):
-...     return num % 2 == 0
-...
->>> filter(is_even, numbers)
-[0, 2, 4, 6, 8]
->>> def power_of_2(num):
-...     return num * num
->>> map(power_of_2, numbers)
-[0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
-\end{py}
-
-In Python 3, they return an object that looks like a \gls{generator}:
-
-\begin{py}
->>> filter(is_even, numbers)
-<filter object at 0x7f7b39abfa58>
->>> list(filter(is_even, numbers))
-[0, 2, 4, 6, 8]
-\end{py}
-
-This means better perfs, but also that you can read them only once, and you can't index them:
-
-\begin{py}
->>> filter(is_even, numbers)[0]
-Traceback (most recent call last):
-  File "<stdin>", line 1, in <module>
-TypeError: 'filter' object is not subscriptable
->>> even_numbers = filter(is_even, numbers)
->>> list(even_numbers)
-[0, 2, 4, 6, 8]
->>> list(even_numbers)
-[]
-\end{py}
-
-If you don't use any of the list behavior and just loop, you can let the code as-is. However, if you use any list behavior like slicing, indexing, or calling \lstinline{append()}, the you should concert the result to a list before, and store it in a variable:
-
-\begin{py}
->>> even_numbers = list(filter(is_even, numbers))
-\end{py}
-
-\subsection{reduce()}
-
-\lstinline{reduce()} is a functional primitive that helps you apply a function to two elements, get the result, then apply the function to the result and the next element and so on.
-
-\subsection{range() and xrange()}
-
-\subsection{reload()}
-
-\subsection{buffer()}
-
-\subsection{raw\_input()}
-
-\subsection{coerce()}
-
-\subsection{file()}
-
-\begin{py}
-from io import IOBase
-
-if isinstance(someobj, IOBase):
-\end{py}
-
-\subsection{ascii()}
-
-\lstinline{inter()} is a rare breed because most people have never heard of it, and never needed it, plus it's pretty low level. It's used to tell Python to intern a string, which, if used as a key in a dictionary, will make looking it up faster. In Python 3 it's been moved to \lstinline{sys.intern}, so you can just conditionally import it.
-
-\lstinline{callable()}
 
 \section{Syntax}
 

@@ -16,6 +16,17 @@
 \newglossaryentry{iterable}
 {
     name=iterable,
-    plural=iterables,
     description={An iterable in Python is anything you can iterate on, meaning you can use a \lstinline{for} loop on it. Any object with the \lstinline{__iter__()} method is considered a callable. The most common iterables are lists, tuples, dicts, strings, memory views and generators.}
+}
+
+\newglossaryentry{literal}
+{
+    name=literal,
+    description={A litteral is a datastructure that be be created using syntax - the litteral notation - instead of using a constructor. E.g: you can use the syntax \lstinline{[]} instead of \lstinline{list()} to create a list, hence, lists are litterals. In Python, strings, bytes, integers, floats, complexes, lists, tuples, sets and dictionaries are literals, while all other objects are not. }
+}
+
+\newglossaryentry{list comprehension}
+{
+    name=list comprehension,
+    description={A special syntax of Python letting you write a \lstinline{for} loop on one line, transforming and/or filtering all the elements you loop on, resulting in a new list. E.G: \lstinline{[x*x for x in range(10) if x \% 2 == 0]} is a list comprehension, looping on \lstinline{range(10)}, filtering all numbers that are not even, and resulting in a new list containing the even numbers raised to the power of 2: \lstinline{[[0, 4, 16, 36, 64]]}. There are also dict comprehensions and set comprehensions, using curly braces (\lstinline{{}}) instead of brackets (\lstinline{[]}), and offering the same abilities, but producing dictionaries and sets. Generator expressions are the last kind of comprehension, using parenthesis instead of brackets, and resulting in a \gls{generator}}
 }

@@ -1,0 +1,376 @@
+
+\chapter{Builtins}
+
+Overwhelmingly, porting your Python 2 code to Python 3 will be about little details. Among those details, the changes done to the builtins have the potential to keep you very busy. Thankfully, we'll see later than it can be mostly automated, so don't rush trying to change all your code base yet.
+
+Builtins are \glspl{callable}, mostly functions, that are available without the need for an import. E.g: \lstinline{print()} and \lstinline{len()} are builtins. They are all in the \lstinline{__builtins__} module (which is always automatically imported and available), and if you call \lstinline{dir()} on it, you'll some have been added and removed Python 3. Others are still here, but their behavior changed.
+
+\section{To print(), and not to print}
+
+You probably already know this, \lstinline{print} used to be a keyword, and is now a builtin function.
+
+For simple display, this mean we go from this:
+
+\begin{py2}
+print "Howdy, Earth!"
+\end{py2}
+
+
+To:
+
+\begin{py3}
+print("Howdy, Earth!")
+\end{py3}
+
+And since \lstinline{print} \href{https://www.python.org/dev/peps/pep-0214/}{does fancy things}:
+
+\begin{py2}
+with open('out.log', 'w') as f:
+    print >>f, "This redirects to a log file"
+print "Ending with a coma skips the line break",
+\end{py2}
+
+You may have to use:
+
+\begin{py3}
+with open('out.log', 'w') as f:
+    print("This redirects to a log file", file=f)
+print("Ending with a coma skips the line break", end="")
+\end{py3}
+
+Starting from Python 2.7, you can turn on the Python 3 behavior using:
+
+\begin{py2and3}
+from __future__ import print_function
+\end{py2and3}
+
+At the begining of a file. It will be limited to that file and needs to be repeated.
+
+I advice you to do this as early has possible, espacially since the muscle memory from typing the old syntax of \lstinline{print} is probably what will take you the most time to port! Besides, the function version has some additional nice features (see the chapter \textquote{New features to take advantage of}).
+
+If you really don't want to do change all your prints yet, and don't want to use \lstinline{__future__} in every file, you can define:
+
+\begin{py2and3}
+printf = getattr(__builtins__, 'print')
+print("Look Ma, print() function without __future__!")
+\end{py2and3}
+
+But really, \lstinline{__future__} is your friend.
+
+
+\subsection{range() and xrange()}
+
+In Python 2, we had two functions, \lstinline{range()} and \lstinline{xrange()}, to generate a sequence of number. \lstinline{range()} produced a list, and \lstinline{xrange()} produced some kind of iterable lazy object that does the same, but without pre-computing all the values:
+
+\begin{py2}
+>>> range(3)
+[0, 1, 2]
+>>> for x in range(3):
+...     print(x)
+...
+0
+1
+2
+>>> xrange(3)
+xrange(3)
+>>> for x in xrange(3):
+...     print(x)
+...
+...
+0
+1
+2
+\end{py2}
+
+The difference is that if you do \lstinline{range(10000000000000)} and \lstinline{xrange(10000000000000)}, the first one will probably result in a MemoryError, trying to fit all those numbers in RAM, while the second one will work like a charm. In any was, \lstinline{xrange()} is usually the most performant choice.
+
+You can use a \lstinline{for} loop on both, so the added value of \lstinline{range()} was limited for the case where you wanted to do something like slicing. For this reason, \lstinline{xrange()} disapeared in Python 3, and \lstinline{range()} was set to behave like \lstinline{xrange()}.
+
+The easy solution is to use the tools we'll talk about later to have the same \lstinline{range()} everywhere. The manual fix, however, is to replace all \lstinline{xrange()} with \lstinline{range()} and pay the performance price in Python 2. In the rare case you do need a list, convert the returned value:
+
+\begin{py2and3}
+>>> list(range(10))
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+\end{py2and3}
+
+\subsection{map() and filter()}
+
+\lstinline{map()} and \lstinline{filter()} are simpler versions of functional programming primitives. \lstinline{map()}, in Python 2, applies a function to all elements in an \gls{iterable}, and returns a new list with the result. \lstinline{filter()} also applies a function to all elements, but returns a new list containing only the elements for which the function returned \lstinline{True}.
+
+E.G, in Python 2:
+
+\begin{py2}
+>>> numbers = range(10)
+>>> numbers
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+>>> def is_even(num):
+...     return num % 2 == 0
+...
+>>> filter(is_even, numbers)
+[0, 2, 4, 6, 8]
+>>> def power_of_2(num):
+...     return num * num
+>>> map(power_of_2, numbers)
+[0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+\end{py2}
+
+In Python 3, they return an object that looks like a \gls{generator}:
+
+\begin{py3}
+>>> filter(is_even, numbers)
+<filter object at 0x7f7b39abfa58>
+>>> list(filter(is_even, numbers))
+[0, 2, 4, 6, 8]
+\end{py3}
+
+This means better perfs, but unfortunalty also that you can read them only once, and you can't index them:
+
+\begin{py3}
+>>> filter(is_even, numbers)[0]
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: 'filter' object is not subscriptable
+>>> even_numbers = filter(is_even, numbers)
+>>> list(even_numbers)
+[0, 2, 4, 6, 8]
+>>> list(even_numbers)
+[]
+\end{py3}
+
+If you don't use any of the list behavior and just loop, you can let the code as-is. However, if you use any list behavior like slicing, indexing, or calling \lstinline{append()}, the you should convert the result to a list before, and store it in a variable:
+
+\begin{py2and3}
+>>> even_numbers = list(filter(is_even, numbers))
+\end{py2and3}
+
+In your code, you may also find the user of \lstinline{itertools.imap()} and \lstinline{itertools.ifilter}. In Python 2 there were used to do the same thing as \lstinline{map()} and \lstinline{filter()}, but with the Python 3 behavior: returning generators. They've been removed, and hence, you should stick to regular \lstinline{map()} and \lstinline{filter()} only. If you are on a code base that runs on Python 2 and 3, Python 2 will have worse performances for that case.
+
+However, idiomatic Python has a tendancy to prefer \glspl{list comprehension}, and since your are converting your code, you could take the opportunity to use them. Filtering and mapping our numbers would go from:
+
+\begin{py2and3}
+>>> list(map(power_of_2, filter(is_even, numbers)))
+[0, 4, 16, 36, 64]
+\end{py2and3}
+
+To:
+
+\begin{py2and3}
+>>> [x * x for x in numbers if x % 2 == 0]
+[0, 4, 16, 36, 64]
+\end{py2and3}
+
+And you can control whever you want this to produce a list or a generator by switching between \lstinline{[]} and \lstinline{()}. It solves all your problems at once.
+
+\subsection{reduce()}
+
+\lstinline{reduce()} is another simplified functional programming primitive that helps you apply a function to two elements, get the result, then apply the function to the result and the next element and so on. E.g, if you wish to multiply all numbers from 1 to 10, you could do:
+
+\begin{py2}
+>>> def multiply(a, b):
+...     return a * b
+>>> reduce(multiply, range(1, 11))
+3628800
+\end{py2}
+
+Guido Van Rossum, the creator of Python, felt like reduce was somewhat complicated to use and deserved an import. Hence, in Python 3 it is in the \lstinline{functools} module.
+
+An easy fix, as starting from Python 2.6 it's in the builtins AND in the the \lstinline{functools} module. So all you have to do is:
+
+\begin{py2and3}
+from functools import reduce
+\end{py2and3}
+
+Once again, tooling we'll introduce later will have an automated fix for it.
+
+\lstinline{zip()}
+
+{zip()} is one of those underused handy little tools. Because Python have an automatic \lstinline{for} loop and so no index incrementing, people needed another way to read two (or more) \glspl{iterable} at the same time. This is what \lstinline{zip()} does:
+
+\begin{py2}
+>>> fruits = ["Memberberries", "Gomu Gomu no Mi", "Senzus Beans"]
+... is_fruit = [True, True, False]
+...
+>>> zip(fruits, are_fruits)
+[('Memberberries', True), ('Gomu Gomu no Mi', True), ('Senzus Beans', False)]
+>>> for f, status in zip(fruits, is_fruit):
+...     print(f, status)
+...
+('Memberberries', True)
+('Gomu Gomu no Mi', True)
+('Senzus Beans', False)
+\end{py2}
+
+In Python 3, it does the same thing, but like \lstinline{map()} and \lstinline{filter()}, returns a generator instead of a list. The coping strategy is the same as well: if you just loop once, keep it as-is, if you read it several times, index it, slice it or use it as a list (\lstinline{append()}, \lstinline{extend()}, etc), convert it to a list before:
+
+\begin{py2and3}
+>>> list(zip(fruits, are_fruits))
+[('Memberberries', True), ('Gomu Gomu no Mi', True), ('Senzus Beans', False)]
+\end{py2and3}
+
+In Python 2, you use find \lstinline{itertools.izip()} as an alternative to \lstinline{zip()} returning a generator. Since it doesn't exist in Python 3, always just use \lstinline{zip()}, and pay the performance penalty on Python 2.
+
+There is also the matter of \lstinline{itertools.izip_longest()}, a companion function to \lstinline{zip}. In case of looping on two iterables of different length, \lstinline{zip()} stops at the shortest, while \lstinline{itertools.zip_longest()} stops at the longest, filling the missing values with \lstinline{None}.
+
+\lstinline{itertools.izip_longest()} has been renamed \lstinline{itertools.zip_longest()} in Python 3, and so you must conditionally import it:
+
+\begin{py2and3}
+try:
+    from itertools import izip_longest as zip_longest
+except ImportError:
+    from itertools import zip_longest
+\end{py2and3}
+
+Of course I'm repeating myself but, we got tools for that.
+
+\subsection{input() and raw\_input()}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{cmp()}
+
+\lstinline{cmp()} is a bit complicated and needs some explanation.
+
+It's common for a programming language to request a callback that will tell a sorting function if something is greater, smaller or equal. One way of doing it is to expect the function to return 1, -1 or 0, and this is the old way of doing it in Python.
+
+E.G, sorting string by lenght using the deprecated method:
+
+\begin{py2}
+>>> famous_last_words = [
+...     "Yippee ki-yay",
+...     "Kawabunga",
+...     "Kamehameha",
+... ]
+>>> def compare(first, second):
+...     if len(first) > len(second):
+...         return 1
+...     elif len(first) < len(second):
+...         return -1
+...     else:
+...         return 0
+...
+>>> sorted(famous_last_words, cmp=compare)
+['Kawabunga', 'Kamehameha', 'Yippee ki-yay']
+\end{py2}
+
+To make this easier, the \lstinline{cmp()} took 2 elements, compared them, and returned 1, -1 or 0 depending of the result, letting you write:
+
+
+\begin{py2}
+>>> def compare(first, second):
+...     return cmp(len(first), len(second))
+>>> sorted(famous_last_words, cmp=compare)
+['Kawabunga', 'Kamehameha', 'Yippee ki-yay']
+\end{py2}
+
+However, a more modern and easy method has been introduced in Python 2.4: the callback now just return the element on which to sort, and Python will use the natural ordering of the object. The new callback is passed through the \lstinline{key} parameter:
+
+\begin{py2and3}
+>>> sorted(famous_last_words, key=len)
+['Kawabunga', 'Kamehameha', 'Yippee ki-yay']
+\end{py2and3}
+
+Hence, \lstinline{cmp()} has been removed from Python 3, and the \lstinline{cmp} parameter has also been removed from the \lstinline{sorted()}, \lstinline{max()} and \lstinline{min()} function (as well as from the \lstinline{heapq} module related features).
+
+You should convert your code to using this easier sorting process, espacially since it works in Python 2.7.
+
+If you can't,there are two things you can do.
+
+First, to workaround the fact \lstinline{cmp()} disapeared, you can write your own \lstinline{cmp()}:
+
+\begin{py2and3}
+def cmp(a, b):
+    return (a>b)-(a<b)
+\end{py2and3}
+
+But remember:
+
+\begin{itemize}
+    \item In Python 3, \lstinline{a} and \lstinline{b} MUST be of compatible types. E.g: two ints, or a int and a float, or two strings. In Python 2 you would use two incompatible types and it would return something, which most of the time was mistake. In Python 3 it would raise an error.
+    \item We'll introduce tools in the second part of the book that will provide things like that, so wait before copy/pasting that.
+\end{itemize}
+
+Then, to compensage the removal of the \lstinline{cmp} parameter, you can use \lstinline{functools.cmp_to_key} to pass old style sorting callback as you would do a new style sorting callback:
+
+\begin{py2and3}
+>>> from functools import cmp_to_key
+>>> sorted(famous_last_words, key=cmp_to_key(compare))
+['Kawabunga', 'Kamehameha', 'Yippee ki-yay']
+\end{py2and3}
+
+\subsection{long()}
+
+Python 2 used to have an additional type for numbers called \lstinline{long}. Any \glspl{literal} have a way to create it with a \lstinline{callable} as well: integers can be created using \lstinline{int()}, and floats using \lstinline{float()}, so the \lstinline{long()} functions existed as well. With the type gone, the function is gone too.
+
+If you used this function, replace it with \lstinline{int()}.
+
+\subsection{apply()}
+
+\lstinline{apply()}, as the name suggests, applies a function to a list (and optionally a dict) of arguments: it's been deprecated since Python 2.3. If you used it for some reason, replace it with unpacking.
+
+Old way that works in 2.7, but not in 3:
+
+\begin{py2}
+>>> def marvelous_function(param1, param2, like_param2_but_better):
+...    print(param1)
+...    print(param2)
+...    print(like_param2_but_better)
+...
+>>> positional_params = ['First', 'Second']
+>>> keyword_argument_params = {"like_param2_but_better": "Best"}
+>>> apply(marvelous_function, positional_params, keyword_argument_params)
+First
+Second
+Best
+\end{py2}
+
+New way, that works everywhere:
+
+\begin{py2and3}
+>>> marvelous_function(*positional_params, **keyword_argument_params)
+First
+Second
+Best
+\end{py2and3}
+
+\subsection{execfile()}
+
+\lstinline{execfile("some_module.py")} is just a shorter way to do \lstinline{exec(open("some_module.py").read())}, so use that. Although if you were doing this instead of just importing the module, there was some black magic going on, and maybe you should investigate.
+
+
+\subsection{reload()}
+
+\subsection{buffer()}
+
+\subsection{coerce()}
+
+\subsection{file()}
+
+\begin{py2}
+from io import IOBase
+
+if isinstance(someobj, IOBase):
+\end{py2}
+
+\subsection{ascii()}
+
+\lstinline{inter()} is a rare breed because most people have never heard of it, and never needed it, plus it's pretty low level. It's used to tell Python to intern a string, which, if used as a key in a dictionary, will make looking it up faster. In Python 3 it's been moved to \lstinline{sys.intern}, so you can just conditionally import it.
+
+\lstinline{callable()}
+
