@@ -11,3 +11,5 @@
 *.glo
 *.ist
 *.xdy
+
+.mypy_cache

@@ -5,3 +5,5 @@
 - Trouver un moyen de rendre le copier/coller sur PDF correct
 - Insérer des QRcodes et liens dans le livre pour chaque snippet
 - chapter on dependancies
+- say that automated tools sometimes overdo it: map, reduce, etc
+- compare 2to6 with the surchouche
