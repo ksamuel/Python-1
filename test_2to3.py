@@ -39,6 +39,42 @@ def multiply(a, b):
 reduce(multiply, range(1, 11))
 
 
+# zip and enumerate
+####################
+
+fruits = ["Memberberries", "Gomu Gomu no Mi", "Senzus Beans"]
+is_fruit = [True, True, False]
+for f, status in zip(fruits, is_fruit)[:2]:
+    print(f, status)
+for num, f in enumerate(fruits)[:2]:
+    print(num, f)
+
+# input() and raw_input()
+##########################
+
+res = input("test")
+res = raw_input('test')
+
+# cmp()
+########
+
+# This is NOT going to be fixed:
+famous_last_words = [
+    "Yippee ki-yay",
+    "Kawabunga",
+    "Kamehameha",
+]
+def compare(first, second):
+     if len(first) > len(second):
+         return 1
+     elif len(first) < len(second):
+         return -1
+     else:
+         return 0
+
+sorted(famous_last_words, cmp=compare)
+
+
 # long
 ########
 

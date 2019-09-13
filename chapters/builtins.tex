@@ -185,9 +185,9 @@ from functools import reduce
 
 Once again, tooling we'll introduce later will have an automated fix for it.
 
-\lstinline{zip()}
+\lstinline{zip() and enumerate()}
 
-{zip()} is one of those underused handy little tools. Because Python have an automatic \lstinline{for} loop and so no index incrementing, people needed another way to read two (or more) \glspl{iterable} at the same time. This is what \lstinline{zip()} does:
+{zip()} and enumerate() are one of those underused handy little tools. Because Python have an automatic \lstinline{for} loop and so no index incrementing, people needed another way to do things like reading two (or more) \glspl{iterable} at the same time (this is what \lstinline{zip()} does) or numbering items (which is \lstinline{enumerate()} specialty):
 
 \begin{py2}
 >>> fruits = ["Memberberries", "Gomu Gomu no Mi", "Senzus Beans"]
@@ -201,16 +201,21 @@ Once again, tooling we'll introduce later will have an automated fix for it.
 ('Memberberries', True)
 ('Gomu Gomu no Mi', True)
 ('Senzus Beans', False)
+>>> for num, f in enumerate(fruits):
+...     print(num, f)
+(0, 'Memberberries')
+(1, 'Gomu Gomu no Mi')
+(2, 'Senzus Beans')
 \end{py2}
 
-In Python 3, it does the same thing, but like \lstinline{map()} and \lstinline{filter()}, returns a generator instead of a list. The coping strategy is the same as well: if you just loop once, keep it as-is, if you read it several times, index it, slice it or use list method (\lstinline{append()}, \lstinline{extend()}, etc), convert it to a list before:
+In Python 3, they do the same thing, but like \lstinline{map()} and \lstinline{filter()}, return a generator instead of a list. The coping strategy is the same as well: if you just loop once, keep it as-is, if you read it several times, index it, slice it or use list method (\lstinline{append()}, \lstinline{extend()}, etc), convert it to a list before:
 
 \begin{py2and3}
->>> list(zip(fruits, are_fruits))
+>>> list(zip(fruits, are_fruits)) # same with enumerate()
 [('Memberberries', True), ('Gomu Gomu no Mi', True), ('Senzus Beans', False)]
 \end{py2and3}
 
-In Python 2, you use find \lstinline{itertools.izip()} as an alternative to \lstinline{zip()} returning a generator. Since it doesn't exist in Python 3, always just use \lstinline{zip()}, and pay the performance penalty on Python 2 in the case you keep a Python 2/3 code base. If it's unacceptable, do a conditional import:
+In Python 2, you could find \lstinline{itertools.izip()} as an alternative to \lstinline{zip()} returning a generator. Since it doesn't exist in Python 3, always just use \lstinline{zip()}, and pay the performance penalty on Python 2 in the case you keep a Python 2/3 code base. If it's unacceptable, do a conditional import:
 
 \begin{py2and3}
 try:
@@ -233,7 +238,7 @@ except ImportError:
     from itertools import zip_longest
 \end{py2and3}
 
-Of course I'm repeating myself but, we got tools for that.
+There is no such condiration for \lstinline{enumerate()}. And, of course I'm repeating myself but, we got tools for that.
 
 \subsection{input() and raw\_input()}
 
@@ -322,12 +327,7 @@ def cmp(a, b):
     return (a>b)-(a<b)
 \end{py2and3}
 
-But remember:
-
-\begin{itemize}
-    \item In Python 3, \lstinline{a} and \lstinline{b} MUST be of compatible types. E.g: two ints, or a int and a float, or two strings. In Python 2 you would use two incompatible types and it would return something, which most of the time was a mistake. In Python 3 it would raise an error, a saner behavior.
-    \item Did I mentioned we'll introduce tools in the second part of the book that will provide things like that ? So wait before copy/pasting that.
-\end{itemize}
+But remember: in Python 3, \lstinline{a} and \lstinline{b} MUST be of compatible types. E.g: two ints, or a int and a float, or two strings. In Python 2 you would use two incompatible types and it would return something, which most of the time was a mistake. In Python 3 it would raise an error, a saner behavior.
 
 To compensage the removal of the \lstinline{cmp} parameter, you can use \lstinline{functools.cmp_to_key} to pass old style sorting callback as you would do a new style sorting callback:
 
@@ -336,6 +336,8 @@ To compensage the removal of the \lstinline{cmp} parameter, you can use \lstinli
 >>> sorted(famous_last_words, key=cmp_to_key(compare))
 ['Kawabunga', 'Kamehameha', 'Yippee ki-yay']
 \end{py2and3}
+
+Now the bad news is that there is no way to fix that automatically. You'll need to get your hands dirty. The very bad news is that there is even more to fix, as the related \gls{dunder} method \lstinline{__cmp__} doesn't exist in Python 3. We'll cover this in the chapter on object oriented programming.
 
 \subsection{long()}
 
@@ -384,6 +386,8 @@ Also, tools and all that. I'm going to stop mentioning it, but you'll keep that 
 \subsection{buffer()}
 
 \subsection{coerce()}
+
+\_\_coerce\_\_
 
 \subsection{file()}
 

@@ -6,6 +6,12 @@
     description={A callable in Python is anything you can call, meaning you can use \lstinline{()} right after the name to get an effect. Any object with the \lstinline{__call__()} method is considered a callable, but on the day to day job, the callables you will meet are mostly functions (e.g: \lstinline{len} is a callable) or classes (e.g: \lstinline{OrderedDict} from the \lstinline{collections} module is a callable).}
 }
 
+\newglossaryentry{dunder}
+{
+    name=dunder,
+    description={In Python, a dunder (for \textquote{double underscore}) variable, function or module is one with a named surrounded with two pairs of underscores. E.G: \lstinline{__doc__} is a dunder variable, \lstinline{__call__()} is a dunder method and \lstinline{__init__.py} is a dunder module. They signal that there is an automated behavior behind this object, and because each behavior is different, that you must read the documentation to understand it. E.g: \lstinline{__doc__} is automatically created and filled with a module docstring, \lstinline{__call__()} is automatically used when calling a function or instanciating a class and \lstinline{__init__.py} is automatically executed when importing the moduling that contains it. The benefit of this syntax is to standout in the code, so that it's very easy to spot where the magic is used. Also, it makes sure developpers have a very low probability of using a conflicting name by mistake.}
+}
+
 \newglossaryentry{generator}
 {
     name=generator,

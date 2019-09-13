@@ -1,3 +1,4 @@
+- Write a summary for builtins
 - Chapitre: Migrer de 2.4 à 2.7
 - Chaptire: Tox
 - Changer couleur des liens
@@ -7,3 +8,17 @@
 - chapter on dependancies
 - say that automated tools sometimes overdo it: map, reduce, etc
 - compare 2to6 with the surchouche
+- rajouter round() dans les builtins: https://stackoverflow.com/questions/10825926/python-3-x-rounding-behavior/10825998#10825998
+- part on packaging
+- parler de comp et des autres méthodes __cmp__()
+- bouger print et sorting dans premier chapitre: Syntax and logic
+- Faire un listing des autres ressource sur le portage de Python:
+   * https://portingguide.readthedocs.io/en/latest/comparisons.html
+   * https://python-future.or
+   * six
+   * 2to3
+   * https://docs.python.org/3/whatsnew/3.0.html
+   * https://pyreadiness.org/2.7/
+   * https://python3statement.org/practicalities/
+   * https://github.com/python-modernize/python-modernize
+   * http://python3porting.com/
