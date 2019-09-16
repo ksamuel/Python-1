@@ -22,3 +22,5 @@
    * https://python3statement.org/practicalities/
    * https://github.com/python-modernize/python-modernize
    * http://python3porting.com/
+- metaclasses, __metaclass__, META
+- install 2to3 from Python 3!

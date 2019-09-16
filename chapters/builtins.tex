@@ -383,6 +383,25 @@ Also, tools and all that. I'm going to stop mentioning it, but you'll keep that 
 
 \subsection{reload()}
 
+When you import a module twice in Python, the job is done only once and then cached. The second time just fetches the reference from that cache: no file opening, new code parsing, no new execution. It's good for performances, and it means you can be trigger happy with the same import in many files.
+
+But it also means if you are in the process of developping the code that if you change the file on disk and proceed to import it, nothing will happend. You need to restart the Python VM for changes to take effect.
+
+Enter \lstinline{reload()}, a function that will allow you to reload a module without having to stop your Python program or shell. Be careful though, as it doesn't update and references, so all variables pointing to objects from this import before the reload are still holding the hold code: it can be a source of very nasty bugs, and it's why \lstinline{reload()} is not very popular.
+
+It's also why, while it used to be a builtin in Python 2, it now needs an import. Unfortunaly, the import machinery changed between Python 3.3, where you'd have to import \lstinline{imp.reload()} and 3.4 where it's in \lstinline{importlib.reload()}. Of course, if you wish to support Python 2 and 3, you'd do:
+
+\begin{py2and3}
+try:
+    from importlib import reload # 3.4+
+except ImportError:
+    from imp import reload # 3.3
+\end{py2and3}
+
+I insisted on tooling a few times. Ok, many times. But for this one, be careful. Some tools versions (e.g: 2to3 for Python 2) won't offer automatic transformations for this, other will, but only for \lstinline{imp.reload()} (e.g: 2to3 for Python 3.6 and lower) or \lstinline{importlib.reload()} (e.g: 2to3 for Python 3.7).
+
+Given It's unlikely you call \lstinline{reload()} all over the place, I'd go with manual fixing on this one.
+
 \subsection{buffer()}
 
 \subsection{coerce()}
@@ -397,7 +416,11 @@ from io import IOBase
 if isinstance(someobj, IOBase):
 \end{py2}
 
-\subsection{ascii()}
+\subsection{unicode()}
+
+This one is going to be part an entire chapter. See \textquote{Bytes and text}.
+
+\subsection{unicode()}
 
 \lstinline{inter()} is a rare breed because most people have never heard of it, and never needed it, plus it's pretty low level. It's used to tell Python to intern a string, which, if used as a key in a dictionary, will make looking it up faster. In Python 3 it's been moved to \lstinline{sys.intern}, so you can just conditionally import it.
 

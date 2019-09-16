@@ -82,6 +82,7 @@ sorted(famous_last_words, cmp=compare)
 a = long(1)
 
 # apply
+########
 
 def marvelous_function(param1, param2, like_param2_but_better):
    print(param1)
@@ -93,5 +94,13 @@ keyword_argument_params = {"like_param2_but_better": "Best"}
 apply(marvelous_function, positional_params, keyword_argument_params)
 
 # execfile
+###########
 
 execfile("some_module.py")
+
+
+# reload
+###########
+
+# This is not going to be converted
+reload('os')
