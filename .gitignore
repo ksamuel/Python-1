@@ -11,6 +11,8 @@
 *.glo
 *.ist
 *.xdy
+*.glg
+*.gls
 
 .mypy_cache
 *.ipynb*

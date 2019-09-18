@@ -1,38 +1,51 @@
 \makeglossaries
 
+% to build:
+% pdflatex main
+% makeglossaries main
+% pdflatex main
+
+
 \newglossaryentry{callable}
 {
     name=callable,
-    description={A callable in Python is anything you can call, meaning you can use \lstinline{()} right after the name to get an effect. Any object with the \lstinline{__call__()} method is considered a callable, but on the day to day job, the callables you will meet are mostly functions (e.g: \lstinline{len} is a callable) or classes (e.g: \lstinline{OrderedDict} from the \lstinline{collections} module is a callable).}
+    description={A callable in Python is anything you can call, meaning you can use \lstinline{()} right after the name to get an effect. Any object with the \lstinline{__call__()} method is considered a callable, but on the day to day job, the callables you will meet are mostly functions (e.g: \lstinline{len} is a callable) or classes (e.g: \lstinline{OrderedDict} from the \lstinline{collections} module is a callable)}
 }
 
 \newglossaryentry{dunder}
 {
     name=dunder,
-    description={In Python, a dunder (for \textquote{double underscore}) variable, function or module is one with a named surrounded with two pairs of underscores. E.G: \lstinline{__doc__} is a dunder variable, \lstinline{__call__()} is a dunder method and \lstinline{__init__.py} is a dunder module. They signal that there is an automated behavior behind this object, and because each behavior is different, that you must read the documentation to understand it. E.g: \lstinline{__doc__} is automatically created and filled with a module docstring, \lstinline{__call__()} is automatically used when calling a function or instanciating a class and \lstinline{__init__.py} is automatically executed when importing the moduling that contains it. The benefit of this syntax is to standout in the code, so that it's very easy to spot where the magic is used. Also, it makes sure developpers have a very low probability of using a conflicting name by mistake.}
+    description={In Python, a dunder (for \textquote{double underscore}) variable, function or module is one with a named surrounded with two pairs of underscores. E.G: \lstinline{__doc__} is a dunder variable, \lstinline{__call__()} is a dunder method and \lstinline{__init__.py} is a dunder module. They signal that there is an automated behavior behind this object, and because each behavior is different, that you must read the documentation to understand it. E.g: \lstinline{__doc__} is automatically created and filled with a module docstring, \lstinline{__call__()} is automatically used when calling a function or instanciating a class and \lstinline{__init__.py} is automatically executed when importing the moduling that contains it. The benefit of this syntax is to standout in the code, so that it's very easy to spot where the magic is used. Also, it makes sure developpers have a very low probability of using a conflicting name by mistake}
 }
 
 \newglossaryentry{generator}
 {
     name=generator,
-    description={A generator is specific type of \gls{iterable} that doesn't contains any element: instead, it generates them on the fly when you read it. Generators are used to save memory, and sometimes CPU, as they don't have to start by creating all the elements you can get from them. Reading a generator is usually done simply by using a \lstinline{for} loop on them. When you do so, it starts producing the elements you will process in the loop, only one at a time. This is transparent, and feels like you are looping an a list or a tuple. The difference is that generators can only be read once. }
+    description={A generator is a specific type of \gls{iterable} that doesn't contains any element: instead, it generates them on the fly when you read it. Generators are used to save memory, and sometimes CPU, as they don't have to start by creating all the elements you can get from them. Reading a generator is usually done simply by using a \lstinline{for} loop on them. When you do so, it starts producing the elements you will process in the loop, only one at a time. This is transparent, and feels like you are looping an a list or a tuple. The difference is that generators can only be read once}
 }
 
 
 \newglossaryentry{iterable}
 {
     name=iterable,
-    description={An iterable in Python is anything you can iterate on, meaning you can use a \lstinline{for} loop on it. Any object with the \lstinline{__iter__()} method is considered a callable. The most common iterables are lists, tuples, dicts, strings, memory views and generators.}
+    description={An iterable in Python is anything you can iterate on, meaning you can use a \lstinline{for} loop on it. Any object with the \lstinline{__iter__()} method is considered an iterable. The most common iterables are lists, tuples, dicts, strings, sets, memory views and generators}
+}
+
+
+\newglossaryentry{keyword}
+{
+    name=keyword,
+    description={In programming, a keyword is a word that has a specific meaning in the language, and is most of the time, reserved. This means you can't use it as an identifier in your own code, e.g: as variable or function name. Keywords are rare, there are only 33 keywords in Python 3.7, like \lstinline{def}, \lstinline{if}, \lstinline{import}, \lstinline{and}, \lstinline{try} or \lstinline{True}. The term \textquote{keyword} has also been coined, to a lesser extend, in a totally different context: to qualify some arguments you pass to a \gls{callable} such as a function or a class. It is used only when the argument is passed using its name instead of its position. E.G: in \lstinline{open('some_file', encoding="utf8")}, \lstinline{'some_file'} is considered a positional argument, while \lstinline{encoding='utf8'} is considered a keyword argument. This is why you sometimes encounter a variable named \lstinline{kwargs}, as it's a common shorthand for \textquote{keyword arguments}}
 }
 
 \newglossaryentry{literal}
 {
     name=literal,
-    description={A litteral is a datastructure that be be created using syntax - the litteral notation - instead of using a constructor. E.g: you can use the syntax \lstinline{[]} instead of \lstinline{list()} to create a list, hence, lists are litterals. In Python, strings, bytes, integers, floats, complexes, lists, tuples, sets and dictionaries are literals, while all other objects are not. }
+    description={A litteral is a datastructure that be be created using syntax - the litteral notation - instead of using a constructor. E.G: you can use the notation \lstinline{[]} instead of calling  \lstinline{list()} to create a list, hence, lists are litterals. In Python, strings, bytes, integers, floats, complexes, lists, tuples, sets and dictionaries are literals, while all other objects are not}
 }
 
 \newglossaryentry{list comprehension}
 {
     name=list comprehension,
-    description={A special syntax of Python letting you write a \lstinline{for} loop on one line, transforming and/or filtering all the elements you loop on, resulting in a new list. E.G: \lstinline{[x*x for x in range(10) if x \% 2 == 0]} is a list comprehension, looping on \lstinline{range(10)}, filtering all numbers that are not even, and resulting in a new list containing the even numbers raised to the power of 2: \lstinline{[[0, 4, 16, 36, 64]]}. There are also dict comprehensions and set comprehensions, using curly braces (\lstinline{{}}) instead of brackets (\lstinline{[]}), and offering the same abilities, but producing dictionaries and sets. Generator expressions are the last kind of comprehension, using parenthesis instead of brackets, and resulting in a \gls{generator}}
+    description={A special syntax of Python letting you write a \lstinline{for} loop on one line, transforming and/or filtering all the elements you loop on, resulting in a new list. E.G: \lstinline{[x*x for x in range(10) if x \% 2 == 0]} is a list comprehension, looping on \lstinline{range(10)}, filtering all numbers that are not even, and resulting in a new list containing the even numbers raised to the power of 2: \lstinline{[0, 4, 16, 36, 64]}. There are also dict comprehensions and set comprehensions, using curly braces (\lstinline{\{\}}) instead of brackets (\lstinline{[]}), and offering the same abilities, but producing dictionaries and sets. Generator expressions are the last kind of comprehension, using parenthesis instead of brackets, and resulting in a \gls{generator}}
 }

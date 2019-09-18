@@ -1,20 +1,17 @@
 
 \chapter{Language differences}
 
-As I said in the previous chapter, the big
-
-80\% of porting your Python 2 code to Python 3 will be about little details. Thankfully, we'll see later than it can be mostly automated, so don't rush trying to change all your code base yet.
+80\% of porting your Python 2 code to Python 3 will be about little details. Thankfully, we'll see later than some of it can be automated or at least made easier by using tools provided by the community, so don't rush trying to change all your code base yet.
 
 \section{To print(), and not to print}
 
-You probably already know this, \lstinline{print} used to be a keyword, and is now a builtin function.
+You probably already know this, \lstinline{print} used to be a \gls{keyword}, and is now a builtin function. This is the \textquote{Hello, world} of all Python 2/3 migration guide, they all start by this, and we'll honor the tradition.
 
 For simple display, this mean we go from this:
 
 \begin{py2}
 print "Howdy, Earth!"
 \end{py2}
-
 
 To:
 
@@ -46,9 +43,9 @@ from __future__ import print_function
 
 At the begining of a file. It will be limited to that file and needs to be repeated.
 
-I advice you to do this as early has possible, espacially since the muscle memory from typing the old syntax of \lstinline{print} is probably what will take you the most time to port! Besides, the function version has some additional nice features (see the chapter \textquote{New features to take advantage of}).
+I advice you to introduce it in your project as early as possible, espacially since the muscle memory from typing the old syntax of \lstinline{print} is probably what will take you the most time to port! Besides, the function version has some additional nice features (see the chapter \textquote{New features to take advantage of}).
 
-If you really don't want to do change all your prints yet, and don't want to use \lstinline{__future__} in every file, you can define:
+If you really don't want to do change all your prints yet, and don't want to use \lstinline{__future__}, you can define:
 
 \begin{py2and3}
 printf = getattr(__builtins__, 'print')
@@ -57,8 +54,7 @@ print("Look Ma, print() function without __future__!")
 
 But really, \lstinline{__future__} is your friend.
 
-
-\section{cmp()}
+\section{Comparing things}
 
 \lstinline{cmp()} is a bit complicated and needs some explanation.
 

@@ -1,11 +1,9 @@
 
 \chapter{Builtins}
 
-As we saw earlier, porting your Python 2 code to Python 3 will be about little details. Among those details, the changes done to the builtins have the potential to keep you very busy. Thankfully, we'll see later than it can be mostly automated, so don't rush trying to change all your code base yet.
-
 Builtins are \glspl{callable}, mostly functions, that are available without the need for an import. E.g: \lstinline{print()} and \lstinline{len()} are builtins. They are all in the \lstinline{__builtins__} module (which is always automatically imported and available), and if you call \lstinline{dir()} on it, you'll some have been added and removed Python 3. Others are still here, but their behavior changed.
 
-We are going to cover a lot of common and less common traps, assuming you are porting from Python 2.7 as recommanded in the introduction.
+We are going to cover a lot of common and less common traps, assuming you are porting from Python 2.7 as recommanded in the introduction. Again, a lot of this can be helped with tooling, so you probably don't want to edit all your code just yet.
 
 \section{Summary}
 
@@ -14,6 +12,7 @@ We are going to cover a lot of common and less common traps, assuming you are po
 \item [map() and filter()]: changed behavior. Use comprehension lists.
 \item [reduce()]: moved. Conditionally import from functools.
 \item [input() and raw\_input()]: \lstinline{raw\_input()} removed. Alias it in V2 and use \lstinline{input()} everywhere.
+\item [zip() and enumerate()]: now return generators.
 \item [long()]: removed. Use \lstinline{int()}.
 \item [apply()]: removed. Use unpacking.
 \item [execfile()]: removed. Use \lstinline{exec(compile(open("some_module.py").read(), "some_module.py", 'exec'))}
@@ -150,7 +149,7 @@ from functools import reduce
 
 Once again, tooling we'll introduce later will have an automated fix for it.
 
-\lstinline{zip() and enumerate()}
+\section{zip() and enumerate()}
 
 {zip()} and enumerate() are one of those underused handy little tools. Because Python have an automatic \lstinline{for} loop and so no index incrementing, people needed another way to do things like reading two (or more) \glspl{iterable} at the same time (this is what \lstinline{zip()} does) or numbering items (which is \lstinline{enumerate()} specialty):
 
