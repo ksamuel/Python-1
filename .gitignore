@@ -16,3 +16,4 @@
 
 .mypy_cache
 *.ipynb*
+resources

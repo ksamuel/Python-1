@@ -1,4 +1,5 @@
-\documentclass[a4paper, 10pt]{book}
+%\documentclass[paperwidth=8in, paperheight=10in, 10pt, fds=5in]{book}
+\documentclass[paperwidth=8in, paperheight=10in,lang=en]{elegantbook}
 \usepackage[utf8]{inputenc}
 \usepackage{ae,lmodern}
 \usepackage[T1]{fontenc}
@@ -7,6 +8,8 @@
 \usepackage{mdframed}
 \usepackage{pifont}
 \usepackage{scrextend}
+\usepackage{layout}
+\usepackage{color}
 
 \usepackage[toc,xindy]{glossaries}
 \input{glossaries.tex}
@@ -20,12 +23,12 @@
 \setlength\parindent{0pt}
 \setlength{\parskip}{10pt plus 1pt minus 2pt}
 
-\hypersetup{
-    colorlinks=true,
-    linkcolor=black,
-    filecolor=magenta,
-    urlcolor=blue,
-}
+% \hypersetup{
+%     colorlinks=true,
+%     linkcolor=black,
+%     filecolor=magenta,
+%     urlcolor=blue,
+% }
 
 \newenvironment{warning}{
   \par
@@ -53,8 +56,20 @@
   \large Porting legacy code from Python 2 to Python 3
 }
 
+\title{Python += 1}
+\subtitle{A pragmatic guide to the Python 2 to 3 transition}
+
+\institute{Bite Code}
+\date{\today}
+\version{0.1}
+
 \author{Kevin Samuel}
 \date{\today}
+
+\extrainfo{}
+
+\logo{bite_code_logo.png}
+\cover{cover.jpg}
 
 \begin{document}
 
@@ -67,6 +82,8 @@
 \include{chapters/intro}
 
 \mainmatter
+
+\hypersetup{pageanchor=true}
 
 \part{The differences between Python 2 and 3}
 
