@@ -24,3 +24,5 @@
    * http://python3porting.com/
 - metaclasses, __metaclass__, META
 - install 2to3 from Python 3!
+- prefix u'' qui a été retiré puis réintroduit
+- mettre sur les sections une iconne (fixable par python-future, 2to3, futurize)

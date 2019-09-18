@@ -1,0 +1,73 @@
+\chapter{Bytes and text}
+
+% http://www.dabeaz.com/python3io_2010/MasteringIO.pdf
+
+Text strings in Python 3 require either 2x as much memory to store as Python 2
+
+
+bad filenames were easy to create in python 2
+
+If you ever see a \udcxx character, it means that a non-decodable byte was passed in from a system interface
+
+s.decode('utf-8','surrogateescape')
+
+TextIOWrapper 10 times faster than codecs.open
+
+% has been removed and reinstroduced
+
+\section{buffer() and memoryview()}
+
+Those two functions respectively create objects of the same name - a \lstinline{buffer} and a \lstinline{memoryview}. Both are a way to get a subset of something without copying it:
+
+\begin{py2}
+>>> donkey_lines = "Are we there yet ?\n" * 10000
+>>> # this copies the data into a new object:
+>>> for x in donkey_lines[:6]:
+...    print(x)
+A
+r
+e
+
+w
+e
+>>> # those don't:
+>>> for x in buffer(donkey_lines, 0, 5):
+...    print(x)
+A
+r
+e
+
+w
+e
+>>> for x in memoryview(donkey_lines)[:5]:
+...    print(x)
+A
+r
+e
+
+w
+e
+\end{py2}
+
+It works on \lstinline{bytes}, \lstinline{bytearray}, \lstinline{array.array}...Everything that implements the so-called \textquote{buffer protocol}. This is a very nice optimization that can save quite a lot of memory/CPU if you manipulate huge chunks of bytes and pass around subset of them, e.g: to files or sockets.
+
+With the rise of performant c libs wrapped in Python (numpy, GUI toolkits, database drivers, etc.), the need for more information about the underlying data than what \lstinline{buffer()} was offering became important. \lstinline{memoryview} provides an answer to that, being able to return the shape, dimension or type or the object behind it.
+
+\lstinline{buffer()} is not more in Python 3, just replace it with \lstinline{memoryview()}. The later exists in Python 2.7, plus it does the same thing, just better. The only difficulty will be that \lstinline{buffer()} accepts \lstinline{unicode()} objects but \lstinline{memoryview()} only accept bytes, and so you'll need to encode them.
+
+So:
+
+\begin{py2}
+from imaginary_lib import get_tps_reports, send_those_bytes
+
+# Imaginary code returning a lot of bytes
+tps_reports = get_tps_reports()
+
+# Imaginary code writting those bytes to a sockets by chunks
+# of 1Mio
+step = 3
+stop = len(tps_reports)
+for i in range(0, stop, step):
+    send_those_bytes(buffer(tps_reports, i, step))
+
+\end{py2}

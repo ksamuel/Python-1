@@ -13,3 +13,4 @@
 *.xdy
 
 .mypy_cache
+*.ipynb*

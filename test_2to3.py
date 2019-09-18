@@ -1,6 +1,6 @@
 
 
-# print
+# print()
 ########
 
 print "Howdy, Earth!"
@@ -27,11 +27,12 @@ def is_even(num):
 def power_of_2(num):
     return num * num
 
+# This is going to be badly converted
 map(power_of_2, filter(is_even, range(10)))[:4]
 # You should change that manually to:
 # [x * x for x in range(10) if x % 2 == 0][:4]
 
-# reduce
+# reduce()
 #########
 
 def multiply(a, b):
@@ -39,7 +40,7 @@ def multiply(a, b):
 reduce(multiply, range(1, 11))
 
 
-# zip and enumerate
+# zip() and enumerate()
 ####################
 
 fruits = ["Memberberries", "Gomu Gomu no Mi", "Senzus Beans"]
@@ -75,13 +76,13 @@ def compare(first, second):
 sorted(famous_last_words, cmp=compare)
 
 
-# long
+# long()
 ########
 
 
 a = long(1)
 
-# apply
+# apply()
 ########
 
 def marvelous_function(param1, param2, like_param2_but_better):
@@ -93,14 +94,37 @@ positional_params = ['First', 'Second']
 keyword_argument_params = {"like_param2_but_better": "Best"}
 apply(marvelous_function, positional_params, keyword_argument_params)
 
-# execfile
+# execfile()
 ###########
 
 execfile("some_module.py")
 
 
-# reload
+# reload()
 ###########
 
 # This is not going to be converted
 reload('os')
+
+# buffer()
+############
+
+# This is not going to be converted
+buffer("azertyuiop", 3, 7)
+
+# coerce()
+###########
+
+# file()
+########
+
+# intern()
+###########
+
+intern("test")
+
+
+# callable()
+#############
+
+callable(str)

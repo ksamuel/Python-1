@@ -59,7 +59,7 @@ print("Look Ma, print() function without __future__!")
 
 But really, \lstinline{__future__} is your friend.
 
-\subsection{range() and xrange()}
+\section{range() and xrange()}
 
 In Python 2, we had two functions, \lstinline{range()} and \lstinline{xrange()}, to generate a sequence of numbers. \lstinline{range()} produced a list, and \lstinline{xrange()} produced some kind of iterable lazy object that does the same, but without pre-computing all the values:
 
@@ -94,7 +94,7 @@ The easy solution is to use the tools we'll talk about later to have the same \l
 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 \end{py2and3}
 
-\subsection{map() and filter()}
+\section{map() and filter()}
 
 \lstinline{map()} and \lstinline{filter()} are simplified versions of functional programming primitives. \lstinline{map()}, in Python 2, applies a function to all elements of an \gls{iterable}, and returns a new list with the result. \lstinline{filter()} also applies a function to all elements, but returns a new list containing only the elements for which the function returned \lstinline{True}.
 
@@ -164,7 +164,7 @@ And you can control whever you want this to produce a list or a generator by swi
 
 In fact, for this very particular problem, tooling will produce something less efficient than this. So embrace comprehension lists!
 
-\subsection{reduce()}
+\section{reduce()}
 
 \lstinline{reduce()} is another simplified functional programming primitive that helps you apply a function to two first elements of an iterable, get the result, then apply the function to the result and the next element and so on. E.g: if you wish to multiply all numbers from 1 to 10, you could do:
 
@@ -240,7 +240,7 @@ except ImportError:
 
 There is no such condiration for \lstinline{enumerate()}. And, of course I'm repeating myself but, we got tools for that.
 
-\subsection{input() and raw\_input()}
+\section{input() and raw\_input()}
 
 \lstinline{input()} was seriously broken in Python 2. It's supposed to be a way to ask a question to the user and get an answer back, but what it did was to run \lstinline{eval()} on it:
 
@@ -272,7 +272,7 @@ else: # python 2
 
 Then use \lstinline{input()} everywhere, avoid non-ASCII string in the prompt and \lstinline{eval\_input()} when you are really, really sure that's what you want to do. Or not. We will have tools for that, remember?
 
-\subsection{cmp()}
+\section{cmp()}
 
 \lstinline{cmp()} is a bit complicated and needs some explanation.
 
@@ -339,13 +339,13 @@ To compensage the removal of the \lstinline{cmp} parameter, you can use \lstinli
 
 Now the bad news is that there is no way to fix that automatically. You'll need to get your hands dirty. The very bad news is that there is even more to fix, as the related \gls{dunder} method \lstinline{__cmp__} doesn't exist in Python 3. We'll cover this in the chapter on object oriented programming.
 
-\subsection{long()}
+\section{long()}
 
 Python 2 used to have an additional type for numbers called \lstinline{long}. Any \glspl{literal} have a way to create it with a \lstinline{callable} as well: integers can be created using \lstinline{int()}, and floats using \lstinline{float()}, so the \lstinline{long()} functions existed as well. With the type gone, the function is gone too.
 
 If you used this function, replace it with \lstinline{int()}. Or, you know, let tools doing it for you.
 
-\subsection{apply()}
+\section{apply()}
 
 \lstinline{apply()}, as the name suggests, applies a function to a list (and optionally a dict) of arguments: it's been deprecated since Python 2.3. If you used it for some reason, replace it with unpacking.
 
@@ -376,12 +376,12 @@ Best
 
 Also, tools and all that. I'm going to stop mentioning it, but you'll keep that in mind, right ?
 
-\subsection{execfile()}
+\section{execfile()}
 
 \lstinline{execfile("some_module.py")} is just a shorter way to do \lstinline{exec(compile(open("some_module.py").read(), "some_module.py", 'exec'))}, so use that. Although if you were doing this instead of just importing the module, there was some black magic going on, and maybe you should investigate.
 
 
-\subsection{reload()}
+\section{reload()}
 
 When you import a module twice in Python, the job is done only once and then cached. The second time just fetches the reference from that cache: no file opening, new code parsing, no new execution. It's good for performances, and it means you can be trigger happy with the same import in many files.
 
@@ -402,13 +402,15 @@ I insisted on tooling a few times. Ok, many times. But for this one, be careful.
 
 Given It's unlikely you call \lstinline{reload()} all over the place, I'd go with manual fixing on this one.
 
-\subsection{buffer()}
+\section{buffer(), memoryview() and unicode()}
 
-\subsection{coerce()}
+Those ones need to be part of an entire chapter: encoding is notoriously misunderstood and you need to know what you're doing to have a happy migration. See \textquote{Bytes and text}.
+
+\section{coerce()}
 
 \_\_coerce\_\_
 
-\subsection{file()}
+\section{file()}
 
 \begin{py2}
 from io import IOBase
@@ -416,13 +418,23 @@ from io import IOBase
 if isinstance(someobj, IOBase):
 \end{py2}
 
-\subsection{unicode()}
+\section{intern()}
 
-This one is going to be part an entire chapter. See \textquote{Bytes and text}.
+\lstinline{intern()} is a rare breed because most people have never heard of it, and never needed it, plus it's pretty low level which is exceptionnal for Python. It's used to tell Python to intern a string, keeping it in a sort of privileged cache allowing for pointer comparison. Practically, if it's used as a key in a dictionary, it will make looking it up the value faster. It the definition of a micro-optimisation, something you don't see often in this language.
 
-\subsection{unicode()}
+In Python 3 it's been moved to \lstinline{sys.intern()}, so you can just import it, or if you need 2/3 compatible code, do a conditional import:
 
-\lstinline{inter()} is a rare breed because most people have never heard of it, and never needed it, plus it's pretty low level. It's used to tell Python to intern a string, which, if used as a key in a dictionary, will make looking it up faster. In Python 3 it's been moved to \lstinline{sys.intern}, so you can just conditionally import it.
+\begin{py2and3}
+try:
+    from sys import intern
+except ImportError:
+    pass
+\end{py2and3}
 
-\lstinline{callable()}
+But you know what they say: there are lies, damn lies and benchmarks. I've read online people can gain around 25% of perf on dict access, but my tests were closer to 5%. And again, just for one operation, dictionary look up, which is unlikely to be the bottleneck of your application. So make sure you really need it: sometimes the easiest fix is just to remove the code.
 
+\section{callable()}
+
+\lstinline{callable()} is a simple function returning \lstinline{True} if something is a \gls{callable}, like a function or a class. Being rarely used, it's been removed in Python 3, before being introduced again in 3.2.
+
+If you followed the advice of not ever using Python 3.0 or 3.1, you can safely ignore this one. If you did not, you can replace it with \lstinline{isinstance(the_thing_you_test, collections.Callable)}.
