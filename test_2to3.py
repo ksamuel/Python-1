@@ -115,8 +115,14 @@ buffer("azertyuiop", 3, 7)
 # coerce()
 ###########
 
+# This is not going to be fixed.
+coerce(1, 1.3)
+
 # file()
 ########
+
+# This is not going to be fixed
+file('test')
 
 # intern()
 ###########

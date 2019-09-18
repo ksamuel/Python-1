@@ -1,4 +1,4 @@
-\chapter{Bytes and text}
+\chapter{The epic tale of I/O, text and bytes}
 
 % http://www.dabeaz.com/python3io_2010/MasteringIO.pdf
 
@@ -7,13 +7,21 @@ Text strings in Python 3 require either 2x as much memory to store as Python 2
 
 bad filenames were easy to create in python 2
 
-If you ever see a \udcxx character, it means that a non-decodable byte was passed in from a system interface
+If you ever see a \lstinline{\udcxx} character, it means that a non-decodable byte was passed in from a system interface
 
 s.decode('utf-8','surrogateescape')
 
 TextIOWrapper 10 times faster than codecs.open
 
 % has been removed and reinstroduced
+
+\section{file()}
+
+\begin{py2}
+from io import IOBase
+
+if isinstance(someobj, IOBase):
+\end{py2}
 
 \section{buffer() and memoryview()}
 
