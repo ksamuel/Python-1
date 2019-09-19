@@ -1,4 +1,4 @@
-\chapter{The epic tale of I/O, text and bytes}
+\chapter{All the stuff you wish you didn't have to know about I/O, text and bytes, but have to}\label{chap:text_and_bytes}
 
 % http://www.dabeaz.com/python3io_2010/MasteringIO.pdf
 
@@ -13,7 +13,15 @@ s.decode('utf-8','surrogateescape')
 
 TextIOWrapper 10 times faster than codecs.open
 
+basestring
+
+%All backslashes in raw string literals are interpreted literally. This means that '\U' and '\u' escapes in raw strings are not treated specially. For example, r'\u20ac' is a string of 6 characters in Python 3.0, whereas in 2.6, ur'\u20ac' was the single “euro” character. (Of course, this change only affects raw string literals; the euro character is '\u20ac' in Python 3.0.)
+
 % has been removed and reinstroduced
+
+pathlib
+
+%# coding: utf8
 
 \section{file()}
 

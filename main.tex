@@ -10,6 +10,7 @@
 \usepackage{scrextend}
 \usepackage{layout}
 \usepackage{color}
+\usepackage{nameref}
 
 \usepackage[toc,xindy]{glossaries}
 \input{glossaries.tex}
@@ -101,13 +102,17 @@ Name changes, absolute imports
 
 \include{chapters/text_and_bytes}
 
+\chapter{Object Oriented Programming}\label{chap:oop}
+
 \chapter{Chapter 4: deprecation}
 
 \chapter{Stdlib, 3rd party}
 
 \chapter{Chapter 5: subtil traps}
 
-Pickle, ssl, async/await, old style classes
+The sys.maxint constant was removed, since there is no longer a limit to the value of integers. However, sys.maxsize can be used as an integer larger than any practical list or string index. It conforms to the implementation’s “natural” integer size and is typically the same as sys.maxint in previous releases on the same platform (assuming the same build options).
+
+Pickle, ssl, async/await, old style classes, .next()
 
 \chapter{Chapter 6:  c extensions}
 
@@ -155,7 +160,7 @@ What to replace with what ?
 
 Pathlib, open, network, u, future...
 
-\chapter{New features to take advantage of}
+\chapter{New features to take advantage of}\label{chap:new_features}
 
 %print()
 

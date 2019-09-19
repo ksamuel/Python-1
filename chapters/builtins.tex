@@ -1,9 +1,9 @@
 
 \chapter{Builtins}
 
-Builtins are \glspl{callable}, mostly functions, that are available without the need for an import. E.g: \lstinline{print()} and \lstinline{len()} are builtins. They are all in the \lstinline{__builtins__} module (which is always automatically imported and available), and if you call \lstinline{dir()} on it, you'll some have been added and removed Python 3. Others are still here, but their behavior changed.
+\Glspl{builtin} are those \glspl{callable}, mostly functions, that are available without the need for an import, such as \lstinline{sorted()} or \lstinline{len()}. They are all in the \lstinline{__builtins__} module (which is always automatically imported and available), and if you call \lstinline{dir()} on it, you'll some have been added and removed Python 3. Others are still here, but their behavior changed.
 
-We are going to cover a lot of common and less common traps, assuming you are porting from Python 2.7 as recommanded in the introduction. Again, a lot of this can be helped with tooling, so you probably don't want to edit all your code just yet.
+We are going to cover common and less common traps, assuming you are porting from Python 2.7 as recommanded in the introduction. Again, a lot of this can be helped with tooling, as we'll see in later chapters.
 
 \section{Summary}
 
@@ -17,7 +17,7 @@ We are going to cover a lot of common and less common traps, assuming you are po
 \item [apply()]: removed. Use unpacking.
 \item [execfile()]: removed. Use \lstinline{exec(compile(open("some_module.py").read(), "some_module.py", 'exec'))}
 \item [reload()]: moved. Conditionlly import it from \lstinline{importlib} and \lstinline{imp}
-\item [buffer(), memoryview(), unicode() and file()]: big topic. See I/O chapter.
+\item [I/O, bytes and strings]: big topic. See I/O chapter.
 \item [coerce()]: deprecated. Remove.
 \item [intern()]: moved. Conditionally import from \lstinline{sys}.
 \item [callable()]: removed and added back. Use \lstinline{isinstance(the_thing_you_test, collections.Callable)}.
@@ -299,9 +299,9 @@ I insisted on tooling a few times. Ok, many times. But for this one, be careful.
 
 Given It's unlikely you call \lstinline{reload()} all over the place, I'd go with manual fixing on this one.
 
-\section{buffer(), memoryview(), unicode() and file()}
+\section{I/O, bytes and strings}
 
-Those ones need to be part of an entire chapter: the topic is notoriously misunderstood and you need to know what you're doing to have a happy migration. See \textquote{The epic tale of I/O, text and bytes}.
+The \lstinline{file()}, \lstinline{buffer()}\lstinline{unicode()} and \lstinline{basestring} \glspl{builtin} were removed. Those ones need to be part of an entire chapter: the topic is notoriously misunderstood and you need to know what you're doing to have a happy migration. See \nameref{chap:text_and_bytes}.
 
 \section{coerce()}
 

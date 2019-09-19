@@ -134,3 +134,16 @@ intern("test")
 #############
 
 callable(str)
+
+# dict
+########
+
+d = {}
+d.viewsitems()[0]
+d.has_key('test')
+
+# division
+###########
+
+# This won't be converted
+1 / 2

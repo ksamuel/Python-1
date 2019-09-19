@@ -5,6 +5,12 @@
 % makeglossaries main
 % pdflatex main
 
+\newglossaryentry{builtin}
+{
+    name=builtin,
+    description={In Python, builtins are \glspl{callable}, most of them functions and classes, that are always available in the current namespace. So they don't need to be imported and can be used right away anywhere. E.g: \lstinline{input()} and \lstinline{range()} are builtin functions while \lstinline{TypeError} and \lstinline{IOError} are builtin exception classes}
+}
+
 
 \newglossaryentry{callable}
 {

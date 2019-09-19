@@ -1,11 +1,11 @@
 
 \chapter{Language differences}
 
-80\% of porting your Python 2 code to Python 3 will be about little details. Thankfully, we'll see later than some of it can be automated or at least made easier by using tools provided by the community, so don't rush trying to change all your code base yet.
+80\% of porting your Python 2 code to Python 3 will be about little details. Thankfully, we'll see later than some of it can be automated or at least made easier by using tools provided by the community, so don't rush trying to change all your code base just yet.
 
 \section{To print(), and not to print}
 
-You probably already know this, \lstinline{print} used to be a \gls{keyword}, and is now a builtin function. This is the \textquote{Hello, world} of all Python 2/3 migration guide, they all start by this, and we'll honor the tradition.
+You probably already know this, \lstinline{print} used to be a \gls{keyword}, and is now a \gls{builtin} function. It's the \textquote{Hello, world} of all Python 2/3 migration guides, and we'll honor the tradition.
 
 For simple display, this mean we go from this:
 
@@ -43,7 +43,7 @@ from __future__ import print_function
 
 At the begining of a file. It will be limited to that file and needs to be repeated.
 
-I advice you to introduce it in your project as early as possible, espacially since the muscle memory from typing the old syntax of \lstinline{print} is probably what will take you the most time to port! Besides, the function version has some additional nice features (see the chapter \textquote{New features to take advantage of}).
+I advice you to introduce it in your project as early as possible, espacially since the muscle memory from typing the old syntax of \lstinline{print} is probably what will take you the most time to port! Besides, the function version has some additional nice features (see the chapter \nameref{chap:new_features}.).
 
 If you really don't want to do change all your prints yet, and don't want to use \lstinline{__future__}, you can define:
 
@@ -52,18 +52,55 @@ printf = getattr(__builtins__, 'print')
 print("Look Ma, print() function without __future__!")
 \end{py2and3}
 
-But really, \lstinline{__future__} is your friend.
+But really, \lstinline{__future__} is your friend. This is an easy fix, and tooling catches it very well, the hard part is to get used to it.
 
 \section{Comparing things}
 
-\lstinline{cmp()} is a bit complicated and needs some explanation.
+\subsection{Comparison operators}
+
+In Python 2.7, it was allowed to compared any object, even when it didn't make sense, and it was the gateway for bugs. Consider the following snippet:
+
+\begin{py2}
+>>> max_weight = 800
+>>> weight = 790
+>>> weight < max_weight
+True
+>>> weight = raw_input("How much ?")
+How much ?790
+>>> weight < max_weight
+False
+\end{py2}
+
+The problem here is that \lstinline{raw_input()} always returns a string. So we are not comparing \lstinline{800} to \lstinline{790}, we are comparing \lstinline{800} to the string \lstinline{"790"}, and comparing numbers and text makes no sense. But Python tries to do it, and get it wrong. The proper code should be:
+
+\begin{py2}
+>>> int(weight) < max_weight
+True
+\end{py2}
+
+This is one of the worst possible bug: a silent one, and that seems to work most of the time. Very hard to debug. So the behavior in Python 3 when comparing incompatible types is now to raise an error:
+
+\begin{py3}
+>>> weight < max_weight
+TypeError: '>' not supported between instances of 'str' and 'int'
+\end{py3}
+
+This lets you find the bug quickly and fix your logic. That's the nice thing about it: as soon as this code run in Python 3, you will know it has a problem since it will crash, and all you have to do is convert one object to the same type as the other. Bottom line, if you see a \lstinline{TypeError} near a \lstinline{<}, \lstinline{<=}, \lstinline{>=}or \lstinline{>}, make sure that you are comparing compatible types. Tooling won't help much with that.
+
+Alternatively, you can define (or update if you were already doing so) special methods on one of the objects so that they can now be compared, as seen in the chapter \nameref{chap:oop}.
+
+One last thing: there used to be a \lstinline{<>} operator in Python 2.7. It was doing the same job as \lstinline{!=}, and was redundant. It doesn't exist in Python 3, you can replace it with \lstinline{!=} everywhere and tools will do that for you.
+
+\subsection{Comparison functions}
+
+The story is a bit more complicated and needs a detailed explanation.
 
 It's common for a programming language to request a callback that will tell a sorting function if something is greater, smaller or equal. One way of doing it is to expect the function to return 1, -1 or 0, and this is the old way of doing it in Python.
 
 E.G, sorting string by length using the deprecated method:
 
 \begin{py2}
->>> famous_last_words = [
+>>> wise_latin_quotes = [
 ...     "Yippee ki-yay",
 ...     "Kawabunga",
 ...     "Kamehameha",
@@ -76,27 +113,33 @@ E.G, sorting string by length using the deprecated method:
 ...     else:
 ...         return 0
 ...
->>> sorted(famous_last_words, cmp=compare)
+>>> sorted(wise_latin_quotes, cmp=compare)
 ['Kawabunga', 'Kamehameha', 'Yippee ki-yay']
 \end{py2}
 
-To make this easier, Python 2 came with the \lstinline{cmp()} builtin, that took 2 elements, compared them, and returned 1, -1 or 0 depending of the result, letting you write:
+This mechanism exists for \lstinline{sorted()}, but also on the \lstinline{list.sort()} method, and on \lstinline{min()} and \lstinline{max()} functions.
+
+To easy writting this kind of code, Python 2 came with the \lstinline{cmp()} \gls{builtin}, that took two elements, compared them, and returned 1, -1 or 0 depending of the result, letting you write:
 
 \begin{py2}
 >>> def compare(first, second):
 ...     return cmp(len(first), len(second))
->>> sorted(famous_last_words, cmp=compare)
+>>> sorted(wise_latin_quotes, cmp=compare)
 ['Kawabunga', 'Kamehameha', 'Yippee ki-yay']
 \end{py2}
 
-However, a more modern and easy method has been introduced in Python 2.4: the callback now just returns the element on which to sort, and Python will use the natural ordering (numerical, alphabetical, etc) of the object. The new callback must be passed through the \lstinline{key} parameter:
+Feel like you are seeing double ? Don't confuse \lstinline{cmp()}, the function that returns 1, -1 or 0, and \lstinline{cmp}, the parameter you need to pass the callback (here \lstinline{compare()}) to. They have the same name, but they do completly different things!
+
+In fact, this \lstinline{cmp} parameter has been subject to change too, albeit a different change.
+
+Indeed, a more modern and easy method for providing a callback for comparing object has been introduced in Python 2.4: the function should now just return the element on which to sort, and Python will use the natural ordering (numerical, alphabetical, etc) of the returned object. This new callback must be passed through the \lstinline{key} parameter instead of \lstinline{cmp}. Here is the same code as before, but with this new, easier method:
 
 \begin{py2and3}
->>> sorted(famous_last_words, key=len)
+>>> sorted(wise_latin_quotes, key=len)
 ['Kawabunga', 'Kamehameha', 'Yippee ki-yay']
 \end{py2and3}
 
-Hence, \lstinline{cmp()} has been removed from Python 3, and the \lstinline{cmp} parameter has also been scrapped from the \lstinline{sorted()}, \lstinline{max()} and \lstinline{min()} functions.
+This new way of comparing became the standard and recommanded one, so the \lstinline{cmp()} function has been removed from Python 3, and the \lstinline{cmp} parameter has also been scrapped.
 
 You should convert your code to using this easier sorting process, espacially since it works in Python 2.7.
 
@@ -109,18 +152,17 @@ def cmp(a, b):
     return (a>b)-(a<b)
 \end{py2and3}
 
-But remember: in Python 3, \lstinline{a} and \lstinline{b} MUST be of compatible types. E.g: two ints, or a int and a float, or two strings. In Python 2 you would use two incompatible types and it would return something, which most of the time was a mistake. In Python 3 it would raise an error, a saner behavior.
+But remember: in Python 3, \lstinline{a} and \lstinline{b} MUST be of compatible types. E.g: two ints, or a int and a float, or two strings. In Python 2 you would use two incompatible types and it would return something, which most of the time was a mistake. In Python 3 it would raise an error.
 
-To compensage the removal of the \lstinline{cmp} parameter, you can use \lstinline{functools.cmp_to_key} to pass old style sorting callback as you would do a new style sorting callback:
+To compensate the removal of the \lstinline{cmp} parameter, you can use \lstinline{functools.cmp_to_key} to pass any old style sorting callback you still have directly to \lstinline{key}:
 
 \begin{py2and3}
 >>> from functools import cmp_to_key
->>> sorted(famous_last_words, key=cmp_to_key(compare))
+>>> sorted(wise_latin_quotes, key=cmp_to_key(compare))
 ['Kawabunga', 'Kamehameha', 'Yippee ki-yay']
 \end{py2and3}
 
-Now the bad news is that there is no way to fix that automatically. You'll need to get your hands dirty. The very bad news is that there is even more to fix, as the related \gls{dunder} method \lstinline{__cmp__} doesn't exist in Python 3. We'll cover this in the chapter on object oriented programming.
-
+Now the bad news is that there is no way to fix that automatically. You'll need to get your hands dirty. The very bad news is that there is even more to fix, as the related \gls{dunder} method \lstinline{__cmp__} doesn't exist in Python 3. We'll cover this in the chapter \nameref{chap:oop}.
 
 \section{Dictionaries}
 
@@ -177,7 +219,6 @@ A better solution was found using memory views:
 dict_items([('Wookie', 'no enough'), ("Goa'uld", 0), ('Octopod', 1), ('Xenomorph', 'too many'), ('Andalite', 2), ('Mondoshawan', '?')])
 dict_values(['no enough', 0, 1, 'too many', 2, '?'])
 dict_keys(['Wookie', "Goa'uld", 'Octopod', 'Xenomorph', 'Andalite', 'Mondoshawan'])
-
 \end{py2}
 
 They save the same amount of resources, but can be read multiple times.
@@ -204,9 +245,9 @@ else:
 
 And use that instead of calling the methods directly.
 
-But don't be too hasty to do this, as in the second part of the book we will see some lirbaries that already offer those kind of tools.
+But don't be too hasty to do this, as in the second part of the book we will see some libraries that already offer those kind of tools.
 
-One other gotcha : memory views cannot be used exactly like lists. E.G: you cannot index them (\lstinline{population.viewitems()[0]} won't work), use \lstinline{append()} on them or add them to another list.
+One other gotcha: memory views cannot be used exactly like lists. E.G: you cannot index them (\lstinline{population.viewitems()[0]} won't work), use \lstinline{append()} on them or add them to another list.
 
 If your code need to do that, convert them to lists before:
 
@@ -214,9 +255,31 @@ If your code need to do that, convert them to lists before:
 stats = list(population.viewitems())
 \end{py3}
 
-\section{Operations}
+And one last thing to change for the road: the \lstinline{dict.has_key()} method doesn't exist anymore. You should use the \lstinline{in} \gls{keyword}, which works in Python 2 and 3.
 
-Coders doing a lot of maths will quickly notice de division operator has changed.
+\section{Exceptions}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Other syntaxic changes}
+
+\subsection{Division}
+
+Coders doing a lot of maths will quickly notice the division operator has changed.
 
 Where in Python 2 you used to do:
 
@@ -248,26 +311,48 @@ Fortunatly, you can activate the behavior of Python 3 in Python 2 by adding at t
 from __future__ import division
 \end{py2and3}
 
-Like with \lstinline{print()}, I advise you to do this as early as possible.
+Like with \lstinline{print()}, I advise you to do this as early as possible, espacially since tooling can help little with this.
+
+\subsection{Booleans}
+
+\subsection{Octal notation}
+
+Octal literals are no longer of the form 0720; use 0o720 instead.
+
 
 Along with this change, Python 2 removed two things that I doubt you will miss but it's always good to mention.
 
-\begin{itemize}
-    \item The \lstinline{<>} operator. It was exactly like \lstinline{!=}. Just do a search and replace for this, really.
-    \item The \lstinline{long} number type. When you created a big integer, Python turned it into a new type which was neither \lstinline{int} nor \lstinline{float}, and appeared suffixed with an L in the terminal (e.g: 9999999999999999999L). This is an implementation detail and you should not worry about it unless you used to parse it manually, in which case, do it in a condition.
-\end{itemize}
+\lstinline{Reserved keywords}
 
+as and with are now reserved words
 
-\section{Syntax}
+async / await
 
 True = False
 % Exception: http://python3porting.com/differences.html#exception-objects
 
-backtick
+Removed backticks (use repr() instead).
 
 exec is a statement vs function in python 3
 
 %https://python-future.org/compatible_idioms.html#standard-library
 
-\section{Object oriented programming}
+
+\subsection{Exceptions}
+
+% https://docs.python.org/3.0/whatsnew/3.0.html#changes-to-exceptions
+
+\lstinline{Get the parenthesis right}
+
+List comprehensions no longer support the syntactic form [... for var in item1, item2, ...]. Use [... for var in (item1, item2, ...)]
+
+%PEP 3113: Tuple parameter unpacking removed. You can no longer write def foo(a, (b, c)): .... Use def foo(a, b_c): b, c = b_c instead.
+
+
+u"test" removed and added back
+L remvoed
+
+The from module import * syntax is only allowed at the module level, no longer inside functions.
+
+Removed keyword: exec() is no longer a keyword; it remains as a function. (Fortunately the function syntax was also accepted in 2.x.) Also note that exec() no longer takes a stream argument; instead of exec(f) you can use exec(f.read())
 
