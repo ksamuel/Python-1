@@ -54,6 +54,100 @@ print("Look Ma, print() function without __future__!")
 
 But really, \lstinline{__future__} is your friend. This is an easy fix, and tooling catches it very well, the hard part is to get used to it.
 
+
+\section{Dictionaries}
+
+To iterate on keys, values or key/value pairs, you need to use special methods in Python:
+
+\begin{py2}
+>>> population = {
+...     "Octopod": 2 - 1,
+...     "Xenomorph": "too many",
+...     "Goa'uld": 0,
+...     "Wookie": "no enough" ,
+...     "Andalite": 2,
+...     "Mondoshawan": "?",
+... }
+>>>
+>>> print(population.keys())
+... print(population.values())
+... print(population.keys())
+...
+['Wookie', "Goa'uld", 'Octopod', 'Xenomorph', 'Andalite', 'Mondoshawan']
+['no enough', 0, 1, 'too many', 2, '?']
+['Wookie', "Goa'uld", 'Octopod', 'Xenomorph', 'Andalite', 'Mondoshawan']
+\end{py2}
+
+Because those methods produce lists, an operation that consume a lot of memory and CPU for a simple iteration, alternatives were provided.
+
+The \lstinline{iter*} methods return a generator, sparing the need to allocate arrays:
+
+\begin{py2}
+>>> print(population.iterkeys())
+... print(population.itervalues())
+... print(population.iterkeys())
+<dictionary-keyiterator object at 0x7f56340a0628>
+<dictionary-valueiterator object at 0x7f56340a0628>
+<dictionary-keyiterator object at 0x7f56340a0628>
+\end{py2}
+
+They are \gls{iterable} as well, so you can use a \lstinline{for} loop on them just like with lists, but but they can only be read once:
+
+\begin{py2}
+>>> names = population.iterkeys()
+>>> list(names)
+['Wookie', "Goa'uld", 'Octopod', 'Xenomorph', 'Andalite', 'Mondoshawan']
+>>> list(names)
+[]
+\end{py2}
+
+A better solution was found using memory views:
+
+\begin{py2}
+>>> print(population.viewitems())
+... print(population.viewvalues())
+... print(population.viewkeys())
+dict_items([('Wookie', 'no enough'), ("Goa'uld", 0), ('Octopod', 1), ('Xenomorph', 'too many'), ('Andalite', 2), ('Mondoshawan', '?')])
+dict_values(['no enough', 0, 1, 'too many', 2, '?'])
+dict_keys(['Wookie', "Goa'uld", 'Octopod', 'Xenomorph', 'Andalite', 'Mondoshawan'])
+\end{py2}
+
+They save the same amount of resources, but can be read multiple times.
+
+However, in Python 3:
+
+\begin{itemize}
+    \item \lstinline{iter*} and \lstinline{view*} methods have been removed;
+    \item \lstinline{keys()}, \lstinline{values()} and \lstinline{items()} now return memory views.
+\end{itemize}
+
+So when you migrate, you want to replace all \lstinline{iter*} and \lstinline{view*} methods by regular \lstinline{keys()}, \lstinline{values()} and \lstinline{items()}. Obviously, if your code will run both in Python 2 and 3 for a while, the Python 2 code will become less performant. You can create a function to avoid this:
+
+\begin{py2and3}
+import sys
+
+if sys.version_info.major < 3:
+    def dict_items(d):
+        return d.viewitems()
+else:
+    def dict_items(d):
+        return d.items()
+\end{py2and3}
+
+And use that instead of calling the methods directly.
+
+But don't be too hasty to do this, as in the second part of the book we will see some libraries that already offer those kind of tools.
+
+One other gotcha: memory views cannot be used exactly like lists. E.G: you cannot index them (\lstinline{population.viewitems()[0]} won't work), use \lstinline{append()} on them or add them to another list.
+
+If your code need to do that, convert them to lists before:
+
+\begin{py3}
+stats = list(population.viewitems())
+\end{py3}
+
+And one last thing to change for the road: the \lstinline{dict.has_key()} method doesn't exist anymore. You should use the \lstinline{in} \gls{keyword}, which works in Python 2 and 3.
+
 \section{Comparing things}
 
 \subsection{Comparison operators}
@@ -164,102 +258,64 @@ To compensate the removal of the \lstinline{cmp} parameter, you can use \lstinli
 
 Now the bad news is that there is no way to fix that automatically. You'll need to get your hands dirty. The very bad news is that there is even more to fix, as the related \gls{dunder} method \lstinline{__cmp__} doesn't exist in Python 3. We'll cover this in the chapter \nameref{chap:oop}.
 
-\section{Dictionaries}
-
-To iterate on keys, values or key/value pairs, you need to use special methods in Python:
-
-\begin{py2}
->>> population = {
-...     "Octopod": 2 - 1,
-...     "Xenomorph": "too many",
-...     "Goa'uld": 0,
-...     "Wookie": "no enough" ,
-...     "Andalite": 2,
-...     "Mondoshawan": "?",
-... }
->>>
->>> print(population.keys())
-... print(population.values())
-... print(population.keys())
-...
-['Wookie', "Goa'uld", 'Octopod', 'Xenomorph', 'Andalite', 'Mondoshawan']
-['no enough', 0, 1, 'too many', 2, '?']
-['Wookie', "Goa'uld", 'Octopod', 'Xenomorph', 'Andalite', 'Mondoshawan']
-\end{py2}
-
-Because those methods produce lists, an operation that consume a lot of memory and CPU for a simple iteration, alternatives were provided.
-
-The \lstinline{iter*} methods return a generator, sparing the need to allocate arrays:
-
-\begin{py2}
->>> print(population.iterkeys())
-... print(population.itervalues())
-... print(population.iterkeys())
-<dictionary-keyiterator object at 0x7f56340a0628>
-<dictionary-valueiterator object at 0x7f56340a0628>
-<dictionary-keyiterator object at 0x7f56340a0628>
-\end{py2}
-
-They are \gls{iterable} as well, so you can use a \lstinline{for} loop on them just like with lists, but but they can only be read once:
-
-\begin{py2}
->>> names = population.iterkeys()
->>> list(names)
-['Wookie', "Goa'uld", 'Octopod', 'Xenomorph', 'Andalite', 'Mondoshawan']
->>> list(names)
-[]
-\end{py2}
-
-A better solution was found using memory views:
-
-\begin{py2}
->>> print(population.viewitems())
-... print(population.viewvalues())
-... print(population.viewkeys())
-dict_items([('Wookie', 'no enough'), ("Goa'uld", 0), ('Octopod', 1), ('Xenomorph', 'too many'), ('Andalite', 2), ('Mondoshawan', '?')])
-dict_values(['no enough', 0, 1, 'too many', 2, '?'])
-dict_keys(['Wookie', "Goa'uld", 'Octopod', 'Xenomorph', 'Andalite', 'Mondoshawan'])
-\end{py2}
-
-They save the same amount of resources, but can be read multiple times.
-
-However, in Python 3:
-
-\begin{itemize}
-    \item \lstinline{iter*} and \lstinline{view*} methods have been removed;
-    \item \lstinline{keys()}, \lstinline{values()} and \lstinline{items()} now return memory views.
-\end{itemize}
-
-So when you migrate, you want to replace all \lstinline{iter*} and \lstinline{view*} methods by regular \lstinline{keys()}, \lstinline{values()} and \lstinline{items()}. Obviously, if your code will run both in Python 2 and 3 for a while, the Python 2 code will become less performant. You can create a function to avoid this:
-
-\begin{py2and3}
-import sys
-
-if sys.version_info.major < 3:
-    def dict_items(d):
-        return d.viewitems()
-else:
-    def dict_items(d):
-        return d.items()
-\end{py2and3}
-
-And use that instead of calling the methods directly.
-
-But don't be too hasty to do this, as in the second part of the book we will see some libraries that already offer those kind of tools.
-
-One other gotcha: memory views cannot be used exactly like lists. E.G: you cannot index them (\lstinline{population.viewitems()[0]} won't work), use \lstinline{append()} on them or add them to another list.
-
-If your code need to do that, convert them to lists before:
-
-\begin{py3}
-stats = list(population.viewitems())
-\end{py3}
-
-And one last thing to change for the road: the \lstinline{dict.has_key()} method doesn't exist anymore. You should use the \lstinline{in} \gls{keyword}, which works in Python 2 and 3.
-
 \section{Exceptions}
 
+All those are pretty old, and well supported by automated tooling. Still, I encoutered a few of them in the wild, so it's good to know.
 
+\subsection{Raising}
+
+Old Python versions allowed to raise an error from any object, not just exceptions. As a result, it was possible to do something like:
+
+\begin{py2}
+raise "Woops!"
+\end{py2}
+
+Another alternative syntax was:
+
+\begin{py2}
+raise TypeError, "Woops!"
+\end{py2}
+
+Both of those are forbidden now, and you should convert them to the standard syntax were you instanciate an exception class (any class that inherit from \lstinline{BaseException}) and pass it the arguments:
+
+\begin{py2and3}
+raise TypeError("Woops!")
+\end{py2and3}
+
+If you have custom exception classes, make sure they inherit from \lstinline{Exception} or one of its children. \lstinline{Exception} also replaces \lstinline{StandardError} that has been removed.
+
+\subsection{Catching}
+
+This one is sneaky. Look at this code:
+
+\begin{py2}
+try:
+    1 / 0
+except ImportError, ZeroDivisionError:
+    return 42
+\end{py2}
+
+It looks like it should return 42 happily, but it crashes with \lstinline{ZeroDivisionError: integer division or modulo by zero}.
+
+In Python 2, what this code does is catching \lstinline{ImportError}, and puting the result in a variable named \lstinline{ZeroDivisionError}. This code is actually doing:
+
+\begin{py2}
+try:
+    1 / 0
+except ImportError as ZeroDivisionError:
+    return 42
+\end{py2}
+
+While what we meant is:
+
+\begin{py2}
+try:
+    1 / 0
+except (ImportError, ZeroDivisionError):
+    return 42
+\end{py2}
+
+You should convert to those more modern idioms. Besides, the old way is a syntax error in Python 3.
 
 
 
@@ -338,9 +394,6 @@ exec is a statement vs function in python 3
 %https://python-future.org/compatible_idioms.html#standard-library
 
 
-\subsection{Exceptions}
-
-% https://docs.python.org/3.0/whatsnew/3.0.html#changes-to-exceptions
 
 \lstinline{Get the parenthesis right}
 

@@ -147,3 +147,17 @@ d.has_key('test')
 
 # This won't be converted
 1 / 2
+
+# Exceptions
+###############
+
+raise "Woops!"
+
+raise TypeError, "Woops!"
+
+raise StandardError("Woops")
+
+try:
+    1 / 0
+except ImportError, ZeroDivisionError:
+    return 42
