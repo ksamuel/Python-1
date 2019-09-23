@@ -315,23 +315,40 @@ except (ImportError, ZeroDivisionError):
     return 42
 \end{py2}
 
-You should convert to those more modern idioms. Besides, the old way is a syntax error in Python 3.
+So, you should convert any of those occurences to the more modern idioms. Besides, the old way is a syntax error in Python 3.
 
+Also, a subtil detail that caught me by surprise once was that exceptions used to be \gls{iterable}. In Python 2, you could do:
 
+\begin{py2}
+>>> error = AssertionError("You do!", "I don't!", "You do!", "I don't!", "You don't.", "I do!",  "You don't!", "I do!")
+>>> for line in error:
+...     print(line)
+You do!
+I don't!
+You do!
+I don't!
+You don't.
+I do!
+You don't!
+I do!
+\begin{py2}
 
+In Python 3 they don't, you need to iterable on the \lstinline{args} attribute:
 
+\begin{py2and3}
+>>> for line in error.args:
+...     print(line)
+You do!
+I don't!
+You do!
+I don't!
+You don't.
+I do!
+You don't!
+I do!
+\begin{py2and3}
 
-
-
-
-
-
-
-
-
-
-
-\section{Other syntaxic changes}
+Granted, it's not something you do everyday.
 
 \subsection{Division}
 
@@ -369,43 +386,130 @@ from __future__ import division
 
 Like with \lstinline{print()}, I advise you to do this as early as possible, espacially since tooling can help little with this.
 
-\subsection{Booleans}
+
+\section{Reserved keywords and constants}
+
+Adding \glspl{keyword} to a language is a delicate process, since suddendly it becomes a syntax error to use it for anything else. Same with \gls{builtin} constants.
+
+In 2.4 \lstinline{None} became a constant. In 2.6, \lstinline{as} and \lstinline{with} became keywords. In Python 3.0, \lstinline{True} and \lstinline{False} became constants. Yes, in Python 2.7 you could do:
+
+\begin{py2}
+True = False
+\end{py2}
+
+To mess around with your interns. And vice versa. Fun times.
+
+And finally, in Python 3.6, \lstinline{async} and \lstinline{await} became keywords as well.
+
+So if you have any variable using those names, time to rename them.
+
+\section{Get the parenthesis right}
+
+In Python 2 it was possible to do \lstinline{[daily_state for daily_state in False, False, "FileNotFound"]} in comprehension lists. Notice the implicit tuple at the end. This magic is gone, and you now need to use parenthesis to remove the ambiguity: \lstinline{[daily_state for daily_state in (False, False, "FileNotFound")]}.
+
+Please note that it is just for list comprehensions, and it still possible to create tuples without parenthesis elsewhere:
+
+\begin{py2and3}
+>>> daily_state = False, False, "FileNotFound"
+>>> daily_state
+(False, False, 'FileNotFound')
+>>> type(daily_state)
+tuple
+\end{py2and3}
+
+This works because the operator to create tuples is the coma, not the parenthesis. Parenthesis are only here to remove ambiguity.
+
+Speaking about parenthesis, Python 2 had a nifty feature allowing to unpack variable directly in a function signature:
+
+\begin{py2}
+>>> def add_restaurant(name, stars, (lat, long)):
+...    print(name)
+...    print(stars)
+...    print(lat)
+...    print(long)
+\end{py2}
+
+Which mean you could call the function that way:
+
+\begin{py2}
+>>> name = "Les pates vivantes"
+>>> stars = 4
+>>> coordinates = [48.874732, 2.341594]
+>>> add_restaurant(name, stars, coordinates)
+Les pates vivantes
+4
+48.874732
+2.341594
+\end{py2}
+
+And it's no longer possible in Python 3. You will have to change that manually.
+
+\section{Other syntaxic changes}
 
 \subsection{Octal notation}
 
-Octal literals are no longer of the form 0720; use 0o720 instead.
+Python got a handful of alternative notation to create types. You can create a string doing \lstinline{'tnetennba'}, \lstinline{"tnetennba"}, \lstinline{"""tnetennba"""} or {'''tnetennba'''}. Four different syntaxes, but they result in the same object.
+
+There is something similar for integer. Indeed, you can create the number 175 using \lstinline{175}, but also with \lstinline{0xAF}
+
+Octal literals are no longer of the form 0720; use 0o720 instead. In
+
+\begin{py2}
+>>> 0xAF # hexadecimal notation
+175
+>>> 0b10101111 # binary notation
+175
+>>> 0257 # octal notation
+175
+\end{py2}
+
+Again, different notations, but they all create the same number in memory.
+
+It comes handy in specific engeenering fields, where they are the default way of representing some values.
+
+The octal notation changed in Python 3 though, and you must insert a \lstinline{o} as the second charater to avoid the syntax error:
+
+\begin{py2and3}
+>>> 0o257
+\begin{py2and3}
+
+It works in Python 2.7 as well. Just update to the most recent syntax.
+
+\subsection{repr()}
+
+\lstinline{repr()} is a what the console use when you type in an object without printing it:
+
+\begin{py2and3}
+>>> "Wololo"
+'Wololo'
+>>> print("Wololo")
+Wololo
+>>> print(repr("Wololo"))
+'Wololo'
+\end{py2and3}
+
+It tries to return something you can pass to \lstinline{exec()}, and if it can't, it will return something like \lstinline{<ClassName>}.
+
+We used to be able to use backsticks (\lstinline{`}) as a shorthand to get an object \lstinline{repr()}:
+
+\begin{py2}
+>>> print(`"Wololo"`)
+'Wololo'
+\end{py2}
+
+This is not possible anymore. Replace it.
 
 
-Along with this change, Python 2 removed two things that I doubt you will miss but it's always good to mention.
-
-\lstinline{Reserved keywords}
-
-as and with are now reserved words
-
-async / await
-
-True = False
-% Exception: http://python3porting.com/differences.html#exception-objects
-
-Removed backticks (use repr() instead).
 
 exec is a statement vs function in python 3
 
 %https://python-future.org/compatible_idioms.html#standard-library
 
 
+% u"test" removed and added back
+% L remvoed
 
-\lstinline{Get the parenthesis right}
+% The from module import * syntax is only allowed at the module level, no longer inside functions.
 
-List comprehensions no longer support the syntactic form [... for var in item1, item2, ...]. Use [... for var in (item1, item2, ...)]
-
-%PEP 3113: Tuple parameter unpacking removed. You can no longer write def foo(a, (b, c)): .... Use def foo(a, b_c): b, c = b_c instead.
-
-
-u"test" removed and added back
-L remvoed
-
-The from module import * syntax is only allowed at the module level, no longer inside functions.
-
-Removed keyword: exec() is no longer a keyword; it remains as a function. (Fortunately the function syntax was also accepted in 2.x.) Also note that exec() no longer takes a stream argument; instead of exec(f) you can use exec(f.read())
+% Removed keyword: exec() is no longer a keyword; it remains as a function. (Fortunately the function syntax was also accepted in 2.x.) Also note that exec() no longer takes a stream argument; instead of exec(f) you can use exec(f.read())
 
