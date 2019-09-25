@@ -3,6 +3,27 @@
 
 80\% of porting your Python 2 code to Python 3 will be about little details. Thankfully, we'll see later than some of it can be automated or at least made easier by using tools provided by the community, so don't rush trying to change all your code base just yet.
 
+
+\section{Summary}
+
+\section{Summary}
+
+\begin{labeling}{summary}
+\item [To print(), and not to print]: use \lstinline{__future__} and convert to \lstinline{print()}.
+\item [Dictionaries]: use \lstinline{.items()}, \lstinline{.values()} and \lstinline{.keys()}.
+\item [Comparison operators]: ensure all comparisons are done on the same type.
+\item [Comparison functions]: use the \lstinline{key} parameter instead of \lstinline{cmp}. Use \lstinline{functools.cmp_to_key} if necessary.
+\item [Raising exceptions]: raise only from \lstinline{Exception} subclasses.
+\item [Catching exceptions]: convert to using the \lstinline{as} keyword.
+\item [Division]: import \lstinline{__future__} and use \lstinline{/} or \lstinline{//} approprietaly.
+\item [Reserved keywords and constants]: rename variables named \lstinline{True}, \lstinline{False}, \lstinline{async}, \lstinline{await}, \lstinline{None}, \lstinline{as} and \lstinline{with}.
+\item [Get the parenthesis right]: no implicit tuples in comprehension list, no forced unpacking in function signatures.
+\item [Octal notation]: insert a \lstinline{o} after the leading 0.
+\item [repr()]: convert backstick to \lstinline{repr()}.
+\item [exec is no longer a keyword]: use the function form, pass only strings.
+\item [The u prefix]: see \nameref{chap:text_and_bytes}.
+\end{labeling}
+
 \section{To print(), and not to print}
 
 You probably already know this, \lstinline{print} used to be a \gls{keyword}, and is now a \gls{builtin} function. It's the \textquote{Hello, world} of all Python 2/3 migration guides, and we'll honor the tradition.
@@ -499,17 +520,12 @@ We used to be able to use backsticks (\lstinline{`}) as a shorthand to get an ob
 
 This is not possible anymore. Replace it.
 
+\subsection{exec is no longer a keyword}
 
+Like \lstinline{print()}, \lstinline{exec}, the \gls{keyword} that lets you execute a string containing Python code, is now a function in Python 3. The function syntax is also accepted in Python 2 so it's a no brainer to swap it. Although there is a catch: you can no longer pass a stream object to it (like an opened file), you can only pass a string. So if you used something like \lstinline{exec open("my_file")}, you must now do something looking like \lstinline{exec(open("my_file").read())}.
 
-exec is a statement vs function in python 3
+\subsection{The u prefix}
 
-%https://python-future.org/compatible_idioms.html#standard-library
+In Python 2 you had strings, and unicode strings. To create a unicode string, you would usually use a \lstinline{u} prefix, like this: \lstinline{u"%*Häagen-Dazs*"}. This prefix has been removed in Python 3, then reintroduced. We'll talk more about this in the chapter \nameref{chap:text_and_bytes}.
 
-
-% u"test" removed and added back
-% L remvoed
-
-% The from module import * syntax is only allowed at the module level, no longer inside functions.
-
-% Removed keyword: exec() is no longer a keyword; it remains as a function. (Fortunately the function syntax was also accepted in 2.x.) Also note that exec() no longer takes a stream argument; instead of exec(f) you can use exec(f.read())
 

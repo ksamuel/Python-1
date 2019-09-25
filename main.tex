@@ -1,6 +1,12 @@
 %\documentclass[paperwidth=8in, paperheight=10in, 10pt, fds=5in]{book}
 \documentclass[paperwidth=8in, paperheight=10in,lang=en]{elegantbook}
 \usepackage[utf8]{inputenc}
+
+\lstset{
+    escapeinside={\%*}{*)},
+    inputencoding=utf8
+}
+
 \usepackage{ae,lmodern}
 \usepackage[T1]{fontenc}
 \usepackage{hyperref}
@@ -104,13 +110,15 @@ Name changes, absolute imports
 
 \chapter{Object Oriented Programming}\label{chap:oop}
 
-\chapter{Chapter 4: deprecation}
+\chapter{Stdlib names and behavior}
 
-\chapter{Stdlib, 3rd party}
-
-\chapter{Chapter 5: subtil traps}
+\chapter{Subtil traps}
 
 The sys.maxint constant was removed, since there is no longer a limit to the value of integers. However, sys.maxsize can be used as an integer larger than any practical list or string index. It conforms to the implementation’s “natural” integer size and is typically the same as sys.maxint in previous releases on the same platform (assuming the same build options).
+
+Shelve (format, ouverture)
+
+% The from module import * syntax is only allowed at the module level, no longer inside functions.
 
 Pickle, ssl, async/await, old style classes, .next()
 
