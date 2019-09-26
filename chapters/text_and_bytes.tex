@@ -1,5 +1,136 @@
 \chapter{All the stuff you wish you didn't have to know about I/O, text and bytes, but have to}\label{chap:text_and_bytes}
 
+It's time we have \textquote{The Talk}.
+
+The least obvious part about moving from Python 2 to 3 is dealing with input and output, the bytes in between and how people manipulate text.
+
+In fact, I give \textquote{The Talk} even to people that are not migrating anything as well, because my experience is that most coders have no idea what those \lstinline{UnicodeDecodeError} are all about.
+
+So read it with attention, it will make all Python coding, present and future, way clearer.
+
+\section{A tale of text and bytes}
+
+\subsection{Bytes are not text}
+
+The whole story must start with the \lstinline{bytes()} type, or rather, what's in it.
+
+Thirty years ago you didn't have to lecture your audience about that: it was mostly low level programmers, they new all about bare metal data representation. If you are one, you can skip this.
+
+But nowaday, a lot of Python coders have always used only high level languages, with types abstracting the details of codecs, mantis or endians.
+
+So what's in a \lstinline{bytes()} ?
+
+Well, in Python, \lstinline{bytes()} is used to hold an arbitrary sequence of numbers, each number being a byte, meaning an integer between 0 and 255.
+
+You see, in computing there is no such things as text, float, or jpeg. We got sequences of 0 and 1. That's all.
+
+For convenience, we group them by packet of 8, which in binary range between 00000000 (0 in base 10) to 11111111 (256 in base 10).
+
+Then we create conventions.
+
+Everything in a computer is just made of conventions. Arbitrary decisions, driven by technical needs, limits or human factors, that people agree on, stating that this combinaison of numbers mean something. They don't have any meaning by themself, but we have specs somewhere saying they do.
+
+For example, let's take this sequence of 6 bytes: 10000000, 11, 1011101, 1110001, 0, 101110. In base 10, it's 128, 3, 93, 113, 0, 46.
+
+This sequence of numbers means nothing by itself.
+
+But some people decided that it could be used to represent C types, more specifically of 3 short integers: 896, 29021, 11776.
+
+Easy to see in Python:
+
+>>> d = bytes([0b10000000, 0b11, 0b1011101, 0b1110001, 0b0, 0b101110])
+>>> list(d)
+[128, 3, 93, 113, 0, 46]
+>>> import struct
+>>> struct.unpack('hhh', d)
+(896, 29021, 11776)
+
+However, some other people, authors of the pickle protocol, decided that the very same bytes could mean an empty list:
+
+>>> d = bytes([0b10000000, 0b11, 0b1011101, 0b1110001, 0b0, 0b101110])
+>>> import pickle
+>>> pickle.loads(d)
+[]
+
+Another example ?
+
+The numbers 1100001, 1100010, 1100011, 1100100 (97, 98, 99, 100 in base 10) can be interpretted as text if you read them using ASCII convention:
+
+>>> data = bytes([0b1100001, 0b1100010, 0b1100011, 0b1100100])
+>>> print(data.decode('ascii'))
+abcd
+
+But the exact same bytes represent the number 1633837924 if you read them as an unsigned big endian integer:
+
+>>> data = bytes([0b1100001, 0b1100010, 0b1100011, 0b1100100])
+>>> import struct
+>>> struct.unpack('>I', data)
+(1633837924,)
+
+Bottom line, you cannot understand what's in a \lstinline{byte()s} type unless you know what format it is in. It can hold anything.
+
+Other data types are just higher level of abstractions that hide the complexity of this reality.
+
+But a big problem can easily arise: many coders think that bytes contains text.
+
+It's not the case, bytes can represent anything, including of course, text.
+
+However, many old languages use arrays of bytes to manipulate characters (hence the name 'strings'). Also, when you types \lstinline{bytes()} in the terminal, it show you a text base representation:
+
+>>> bytes([0b10000000, 0b11, 0b1011101, 0b1110001, 0b0, 0b101110])
+b'\x80\x03]q\x00.'
+>>> bytes([0b1100001, 0b1100010, 0b1100011, 0b1100100])
+b'abcd'
+
+In fact, you can even create \lstinline{bytes()} using a text based notation:
+
+>>> list(b"Those are numbers")
+[84, 104, 111, 115, 101, 32, 97, 114, 101, 32, 110, 117, 109, 98, 101, 114, 115]
+
+This is for convenience. If you manipulates bytes a lot, it gets easier to recognise values from their ASCII letter representation or their hexadecimal value. So this is what Python gives you by default.
+
+It doesn't mean \lstinline{bytes()} hold text though. It can. And even if it doesn't, it will try to show you a human readable representation of any mess you throw at it.
+
+\subsection{str() for manipulating text}
+
+I Python, well, in Python 3 at least, the type \lstinline{str()} is the high level data structure tailored to manipulate text.
+
+If you know some \lstinline{bytes()} contains text. And if you know what character set the bytes has been written in(you know, utf-8, latin-1, IS0-8859, etc.), you can convert your \lstinline{bytes()} to a \lstinline{str()} by decoding it:
+
+>>> b'\xe8\x9f\x92\xe8\x9b\x87'.decode('utf8')
+'蟒蛇'
+
+Yes, you should do this even if it's ASCII:
+
+>>> type(b'abcd')
+<class 'bytes'>
+>>> type(b'abcd'.decode('ascii'))
+<class 'str'>
+
+\lstinline{Good practice of text manipulation}
+
+\section{The problem with Python 2}
+
+\section{Migrating your strings}
+
+%# coding: utf-8
+
+%__future__
+
+u
+
+decode
+
+encode
+
+codecs.open() (and perfs)
+
+formatting bytes
+
+\section{Fun with file paths}
+
+\section{Wait, there is I/O}
+
 % http://www.dabeaz.com/python3io_2010/MasteringIO.pdf
 
 Text strings in Python 3 require either 2x as much memory to store as Python 2
@@ -31,7 +162,7 @@ from io import IOBase
 if isinstance(someobj, IOBase):
 \end{py2}
 
-\section{buffer() and memoryview()}
+\section{from buffer() tp memoryview()}
 
 Those two functions respectively create objects of the same name - a \lstinline{buffer} and a \lstinline{memoryview}. Both are a way to get a subset of something without copying it:
 
@@ -65,7 +196,7 @@ w
 e
 \end{py2}
 
-It works on \lstinline{bytes}, \lstinline{bytearray}, \lstinline{array.array}...Everything that implements the so-called \textquote{buffer protocol}. This is a very nice optimization that can save quite a lot of memory/CPU if you manipulate huge chunks of bytes and pass around subset of them, e.g: to files or sockets.
+It works on \lstinline{bytes()}, \lstinline{bytearray}, \lstinline{array.array}...Everything that implements the so-called \textquote{buffer protocol}. This is a very nice optimization that can save quite a lot of memory/CPU if you manipulate huge chunks of bytes and pass around subset of them, e.g: to files or sockets.
 
 With the rise of performant c libs wrapped in Python (numpy, GUI toolkits, database drivers, etc.), the need for more information about the underlying data than what \lstinline{buffer()} was offering became important. \lstinline{memoryview} provides an answer to that, being able to return the shape, dimension or type or the object behind it.
 
