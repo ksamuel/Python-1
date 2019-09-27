@@ -2,11 +2,11 @@
 
 It's time we have \textquote{The Talk}.
 
-The least obvious part about moving from Python 2 to 3 is dealing with input and output, the bytes in between and how people manipulate text.
+The least obvious part about moving from Python 2 to 3 is dealing with inputs and outputs, the bytes in between and how people manipulate text.
 
-In fact, I give \textquote{The Talk} even to people that are not migrating anything as well, because my experience is that most coders have no idea what those \lstinline{UnicodeDecodeError} are all about.
+In fact, I give \textquote{The Talk} even to people that are not migrating anything, because my experience is that most coders have no idea what those \lstinline{UnicodeDecodeError} are all about.
 
-So read it with attention, it will make all Python coding, present and future, way clearer.
+So read it with attention, it will make all Python coding, present and future, way clearer. First, we'll start with a deep explanation on how things work. We'll only focus on the differences between Python 2 and 3 after that.
 
 \section{A tale of text and bytes}
 
@@ -14,102 +14,221 @@ So read it with attention, it will make all Python coding, present and future, w
 
 The whole story must start with the \lstinline{bytes()} type, or rather, what's in it.
 
-Thirty years ago you didn't have to lecture your audience about that: it was mostly low level programmers, they new all about bare metal data representation. If you are one, you can skip this.
+Thirty years ago you didn't have to lecture your audience about that: it was mostly low level programmers, they new all about bare metal data representation. If you are one, you can skip this section.
 
-But nowaday, a lot of Python coders have always used only high level languages, with types abstracting the details of codecs, mantis or endians.
+But nowaday, a lot of Python coders have only used high level languages, with types abstracting the details of codecs, mantis or endians.
 
 So what's in a \lstinline{bytes()} ?
 
-Well, in Python, \lstinline{bytes()} is used to hold an arbitrary sequence of numbers, each number being a byte, meaning an integer between 0 and 255.
+Well, in Python, \lstinline{bytes()} is used to hold an arbitrary sequence of numbers, each number being a byte, meaning an integer between 0 and 255, in binary.
 
 You see, in computing there is no such things as text, float, or jpeg. We got sequences of 0 and 1. That's all.
 
-For convenience, we group them by packet of 8, which in binary range between 00000000 (0 in base 10) to 11111111 (256 in base 10).
+For convenience, we group them by packets of 8, which in binary goes from 00000000 (0 in base 10) to 11111111 (256 in base 10).
 
-Then we create conventions.
+Then we make up conventions.
 
-Everything in a computer is just made of conventions. Arbitrary decisions, driven by technical needs, limits or human factors, that people agree on, stating that this combinaison of numbers mean something. They don't have any meaning by themself, but we have specs somewhere saying they do.
+Everything in a computing is just made of conventions. Arbitrary decisions, driven by technical needs, limits or human factors, that people agree on, stating that this combinaison of numbers mean something. They don't have any meaning by themself mind you, but we have specs somewhere saying they do. And so we can use them as such.
 
 For example, let's take this sequence of 6 bytes: 10000000, 11, 1011101, 1110001, 0, 101110. In base 10, it's 128, 3, 93, 113, 0, 46.
 
 This sequence of numbers means nothing by itself.
 
-But some people decided that it could be used to represent C types, more specifically of 3 short integers: 896, 29021, 11776.
+But some people decided that it could be used to represent C types, more specifically 3 short integers: 896, 29021, 11776.
 
 Easy to see in Python:
 
+\begin{py2and3}
 >>> d = bytes([0b10000000, 0b11, 0b1011101, 0b1110001, 0b0, 0b101110])
 >>> list(d)
 [128, 3, 93, 113, 0, 46]
 >>> import struct
 >>> struct.unpack('hhh', d)
 (896, 29021, 11776)
+\end{py2and3}
 
 However, some other people, authors of the pickle protocol, decided that the very same bytes could mean an empty list:
 
+\begin{py2and3}
 >>> d = bytes([0b10000000, 0b11, 0b1011101, 0b1110001, 0b0, 0b101110])
 >>> import pickle
 >>> pickle.loads(d)
 []
+\end{py2and3}
 
 Another example ?
 
-The numbers 1100001, 1100010, 1100011, 1100100 (97, 98, 99, 100 in base 10) can be interpretted as text if you read them using ASCII convention:
+The numbers 1100001, 1100010, 1100011, 1100100 (or 97, 98, 99, 100 in base 10) can be interpretted as text if you read them using the ASCII convention:
 
+\begin{py2and3}
 >>> data = bytes([0b1100001, 0b1100010, 0b1100011, 0b1100100])
 >>> print(data.decode('ascii'))
 abcd
+\end{py2and3}
 
 But the exact same bytes represent the number 1633837924 if you read them as an unsigned big endian integer:
 
+\begin{py2and3}
 >>> data = bytes([0b1100001, 0b1100010, 0b1100011, 0b1100100])
 >>> import struct
 >>> struct.unpack('>I', data)
 (1633837924,)
+\end{py2and3}
 
-Bottom line, you cannot understand what's in a \lstinline{byte()s} type unless you know what format it is in. It can hold anything.
+Bottom line, you cannot understand what's in a \lstinline{bytes()} type unless you know what format it is in. It can hold anything.
 
-Other data types are just higher level of abstractions that hide the complexity of this reality.
+Other data types are just higher level of abstractions that hide the complexity of this reality. Handling raw bytes for doing stats or parsing a file wouldn't be very fun.
 
-But a big problem can easily arise: many coders think that bytes contains text.
+But a big problem can easily arise: many coders think that the \lstinline{bytes()} type contains text.
 
 It's not the case, bytes can represent anything, including of course, text.
 
-However, many old languages use arrays of bytes to manipulate characters (hence the name 'strings'). Also, when you types \lstinline{bytes()} in the terminal, it show you a text base representation:
+However, many old languages use arrays of bytes to manipulate characters (hence the name 'strings'). Also, when you types \lstinline{bytes()} in the terminal, it show you a text representation:
 
+
+\begin{py2and3}
 >>> bytes([0b10000000, 0b11, 0b1011101, 0b1110001, 0b0, 0b101110])
 b'\x80\x03]q\x00.'
 >>> bytes([0b1100001, 0b1100010, 0b1100011, 0b1100100])
 b'abcd'
+\end{py2and3}
 
-In fact, you can even create \lstinline{bytes()} using a text based notation:
+In fact, you can even create \lstinline{bytes()} using a text notation:
 
+\begin{py2and3}
 >>> list(b"Those are numbers")
 [84, 104, 111, 115, 101, 32, 97, 114, 101, 32, 110, 117, 109, 98, 101, 114, 115]
+\end{py2and3}
 
-This is for convenience. If you manipulates bytes a lot, it gets easier to recognise values from their ASCII letter representation or their hexadecimal value. So this is what Python gives you by default.
+This is for convenience. If you manipulates bytes a lot, it gets easier to recognise values from their ASCII letter representations or their hexadecimal values. So this is what Python gives you by default.
 
-It doesn't mean \lstinline{bytes()} hold text though. It can. And even if it doesn't, it will try to show you a human readable representation of any mess you throw at it.
+It doesn't mean \lstinline{bytes()} hold text though. It can. But even if it doesn't, Python will try to show you a human readable representation of any mess you throw at it.
 
 \subsection{str() for manipulating text}
 
-I Python, well, in Python 3 at least, the type \lstinline{str()} is the high level data structure tailored to manipulate text.
+In, Python, well, in Python 3 at least, the type \lstinline{str()} is the high level data structure tailored to manipulate text. Not \lstinline{bytes()}.
 
-If you know some \lstinline{bytes()} contains text. And if you know what character set the bytes has been written in(you know, utf-8, latin-1, IS0-8859, etc.), you can convert your \lstinline{bytes()} to a \lstinline{str()} by decoding it:
+If you are sure some \lstinline{bytes()} contains text. And if you know what character set the bytes has been written in (like utf-8, latin-1, IS0-8859, etc.), you can convert your \lstinline{bytes()} to a \lstinline{str()} by decoding it:
 
+\begin{py3}
 >>> b'\xe8\x9f\x92\xe8\x9b\x87'.decode('utf8')
 '蟒蛇'
+\end{py3}
 
 Yes, you should do this even if it's ASCII:
 
+\begin{py3}
 >>> type(b'abcd')
 <class 'bytes'>
 >>> type(b'abcd'.decode('ascii'))
 <class 'str'>
+\end{py3}
 
-\lstinline{Good practice of text manipulation}
+The opposite is true. You can turn \lstinline{str()} to \lstinline{bytes()} by encoding:
+
+\begin{py3}
+>>> type("éèêë")
+<class 'str'>
+>>> "éèêë".encode('utf8')
+b'\xc3\xa9\xc3\xa8\xc3\xaa\xc3\xab'
+\end{py3}
+
+Those bytes can then be put in a file, or sent through the network. Indeed, the rest of the world cannot manipulate Python types, they understand only bytes. Of course, then need to know the convention you used to understand what you meant.
+
+For text, there are many, many conventions, containing the characters sets (the table stating which bytes combinations matches which graphem, often a character) and a spec of rules to apply when assembling the content. We call those \textquote{encodings}.
+
+A quick look at the encodings supported by Python gives us more than three hundred of them:
+
+\begin{py3}
+>>> import encodings
+>>> list(encodings.aliases.aliases.keys())[:10]
+['chinese', 'ksx1001', 'ibm039', '865', 'iso_8859_9', 'iso_2022_jp_ext', 'iso_2022_jp_1', 'u32', 'l10', 'csiso2022jp']
+>>> len(encodings.aliases.aliases.keys())
+322
+\end{py3}
+
+Among all of those, the most popular standards are ASCII (\lstinline|'0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{\|\}~|), ISO-8859 (a.k.a latin-1, used for extra west european characters), cp850 (default encoding of cmd.exe on Windows) and unicode.
+
+Unicode is a very successful attempt at creating something you can use for most text, including European languages, arab, russian, asian languages, and even some dead languages.
+
+The most popular implementation of unicode is UTF-8. It won because any ASCII is valid UTF-8, which helped the transition.
+
+Basically, unless you have a very good reason and you know what you're doing, you should be using UTF-8 everywhere.
+
+\section{Good practice of text manipulation}
+
+For a painless text experience, in Python, but also in other programming language, you should follow a few rules.
+
+\subsection{Rule 1: your code files should be in UTF-8}
+
+Any text is a bunch of bytes organised occording to an encoding. You code files are no exception. Any decent code editor allow you to choose the encoding UTF-8.
+
+\subsection{Rule 2: when you get an input, decode()}
+
+Any data you manipulate in your program that wasn't hard coded in your file is an input. User filling up a form, load a file, getting a network packet, reading a database reasponse, prompting from the terminal. All those are data comming from the outside world inside your program.
+
+They all come as bytes, and some of those bytes may be text. If you are sure they are text and know the encoding, call \lstinline{.decode()} to get a \lstinline{str()}.
+
+Sometimes, wrappers will make it easier for you. E.G, you could do:
+
+\begin{py3}
+>>> with open(some_file, 'rb') as f:
+...     for line in f:
+...         # line is a bytes(), we
+...         # need to decode
+...         print(line.decode('utf8'))
+Moo.
+I said, moo.
+Look I'm just a cow, ok?
+\end{py3}
+
+But \lstinline{open()} can do it for you:
+
+\begin{py3}
+>>> with open(some_file, 'r', encoding="utf8") as f:
+...     for line in f:
+...         print(line) # line is a string
+Moo.
+I said, moo.
+Look I'm just a cow, ok?
+\end{py3}
+
+Some things are even easier. Reading from the terminal is automatically decoded by Python. You have nothing to do. Some 3rd party libraries, like \lstinline{requests} try to find out the encoding received from the network, and decode it transparently for you:
+
+\begin{py3}
+>>> import requests
+>>> response = requests.get('http://python.org')
+>>> response.encoding
+'utf-8'
+>>> type(response.text)
+<class 'str'>
+\end{py3}
+
+But if you receive \lstinline{bytes()}, you should decode it manually.
+
+\subsection{Rule 3: when you do an output, encode()}
+
+At some point you will need to get data out of your program, otherwise it wouldn't be very useful. If this data is text, you should encode it before any output.
+
+Everything that comes out of your program mean there is an output: printing on the terminal, making a query to a database, sending packets through a socket, writting a file, etc.
+
+And if the data you is in a \lstinline{str()}, you must turn it into a \lstinline{bytes()} using \lstinline{.encode()}.
+
+As for reading, sometime it will be made easy, like with \lstinline{open()}. Sometime you will have to do it manually.
+
+Of course, unless you have a very good reason (client forces you, old spec, legacy system, embded device with limited resources...), always use UTF-8.
+
+\section{But how do I know the encoding being used ?}
+
+errors
+
+unidecode
+
+chardet
 
 \section{The problem with Python 2}
+
+open
 
 \section{Migrating your strings}
 
@@ -126,6 +245,13 @@ encode
 codecs.open() (and perfs)
 
 formatting bytes
+
+always call open() with an encoding or else
+
+buffer. Par exemple, pour écrire des octets sur stdout, utilisez sys.stdout.buffer.write(b'abc').
+
+unfortunately, changing sys.stdout to accept only unicode breaks a lot of libraries that expect it to accept encoded bytestrings. – nosklo Dec 4 '09 at 19:14
+
 
 \section{Fun with file paths}
 
