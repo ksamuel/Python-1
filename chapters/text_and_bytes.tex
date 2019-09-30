@@ -6,7 +6,11 @@ The least obvious part about moving from Python 2 to 3 is dealing with inputs an
 
 In fact, I give \textquote{The Talk} even to people that are not migrating anything, because my experience is that most coders have no idea what those \lstinline{UnicodeDecodeError} are all about.
 
-So read it with attention, it will make all Python coding, present and future, way clearer. First, we'll start with a deep explanation on how things work. We'll only focus on the differences between Python 2 and 3 after that.
+So read it with attention, it will make all Python coding, present and future, way clearer. To be honest, it will make all coding clearer, in any language: encoding is an universal problem.
+
+First, we'll start with a deep explanation on how things work. We'll only focus on the differences between Python 2 and 3 after that.
+
+It's a pretty long disgression, but it will pay off.
 
 \section{A tale of text and bytes}
 
@@ -216,21 +220,162 @@ And if the data you is in a \lstinline{str()}, you must turn it into a \lstinlin
 
 As for reading, sometime it will be made easy, like with \lstinline{open()}. Sometime you will have to do it manually.
 
-Of course, unless you have a very good reason (client forces you, old spec, legacy system, embded device with limited resources...), always use UTF-8.
+Of course, unless you have a very good reason (client requires it, old specs, legacy system, embdeded device with limited resources...), always use UTF-8.
 
 \section{But how do I know the encoding being used ?}
 
-errors
+Now that it is clear that \lstinline{bytes()} contains arbitrary bytes, that those bytes may be text, and that to use it, you need the convention that produced it, how to find it.
 
-unidecode
+Sometimes, there is an API for it. E.G, stdio and file system encodings are exposed by Python:
 
-chardet
+\begin{py2and3}
+>>> import sys
+>>> sys.stdout.encoding
+'UTF-8'
+>>> sys.stdin.encoding
+'UTF-8'
+>>> sys.stderr.encoding
+'UTF-8'
+>>> sys.getfilesystemencoding()
+'UTF-8'
+\end{py2and3}
+
+You probably won't need those in particular, since Python transparently decode/encode FS calls and terminal printing/reading. But you get the picture: some libraries will let you know.
+
+Sometimes, you can ask a system the information. E.G: database let you send an SQL query to get the encoding used for tables.
+
+Documents and protocols may also include the information in metadata. HTML and XML often have encodings stated in the first lines, HTTP headers may contain the encoding too.
+
+Specs and documentation also can very well define the mandatory encoding. JSON is a famous example, as it must be UTF-8 to fit the standard.
+
+Finally, you may just ask the developper that made or used the software that produced the text.
+
+Unfortunaly, it is often not enough. Many developpers don't know anything about encodings, and don't know what they used, or that they used one at all. Sometime, they used or declared the wrong one. Sometime the developper is missing, the doc obsolete, and the information is nowhere to be found.
+
+So is there a sure way to find out the encoding ?
+
+No.
+
+Texts don't have to carry with them their encodings. A lot of files are just lying there, without any way to know for sure. Fun fact, the filename encoding can very well be different than the file content encoding.
+
+However, many softwares such as code editors or web browsers have been trying to solve this problem for years,and developped pretty decent heuristics to attempt detecting text formats.
+
+One of those library is \href{https://pypi.org/project/chardet/}{Chardet}, a FOSS project that originated from Mozilla, and ported to Python. Luckily, it's compatible with Python 2 and 3!
+
+After a \lstinline{pip install chardet}, you can:
+
+\begin{py2and3}
+>>> import chardet
+>>> chardet.detect("Ça va trancher chérie !".encode('utf8'))
+{'confidence': 0.7525, 'language': '', 'encoding': 'utf-8'}
+>>> chardet.detect("Ça va trancher chérie !".encode('ISO-8859-1'))
+{'confidence': 0.73, 'language': '', 'encoding': 'ISO-8859-1'}
+\end{py2and3}
+
+Of course, this is not exact science, but probabilities, and sometimes it's wrong. But it's pretty good, and it also has a command line version to be used on an entire file.
+
+If none of that works, and you know you are working with latin alphabet, it's an acceptable strategy to try the most popular encodings one by one:
+
+\begin{itemize}
+\item UTF8
+\item ISO-8859-1
+\item Windows-1252
+\item CP850
+\item ASCII
+\end{itemize}
+
+If doing it dynamically, a \lstinline{try}/\lstinline{except} on \lstinline{UnicodeEncodeError} or \lstinline{UnicodeDecodeError} will be required.
+
+\section{Workarounds for when things go wrong}
+
+Despite your best efforts, something will fail. The world is imperfect. Double encodings, bugs, badly declared metadata, old systems and clients with limited knowledge are part of the drill.
+
+In that case what can you do ?
+
+If you are getting an input, you must \lstinline{decode()}. Find out the encoding from metadata/specs/query/API. Try it. If that doesn't work, try Chardet. If that fails, try the list of encodings I gave you. And if that still doesn't give you what you need, use UTF-8 with an error handler \lstinline{errors}.
+
+Without any error handling strategy:
+
+\begin{py3}
+>>> encoded_text = "Ça va trancher chérie !".encode('cp850')
+>>> encoded_text.decode('utf8')
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/home/user/.local/share/virtualenvs/book/lib/python2.7/encodings/utf_8.py", line 16, in decode
+    return codecs.utf_8_decode(input, errors, True)
+UnicodeDecodeError: 'utf8' codec can't decode byte 0x80 in position 0: invalid start byte
+\end{py3}
+
+With one:
+
+\begin{py3}
+>>> encoded_text = "Ça va trancher chérie !".encode('cp850')
+>>> print(encoded_text.decode('utf8', errors="replace"))
+�a va trancher ch�rie !
+>>> print(encoded_text.decode('utf8', errors="ignore"))
+a va trancher chrie !
+\end{py3}
+
+This works in Python 2 as well, but need \lstinline{unicode()}, which will talk about later.
+
+If you have to share text with the rest of the world, you have the opposite problem. You must \lstinline{encode()}. You can always encode to UTF8, you won't get an error from that. The problem is that some systems that will consume the resulting bytes won't be able to, because they don't support UTF-8. The Windows terminal used CP-850 by default for a long time. I word with systems from the US Health administration using SOAP, and supporting only ASCII.
+
+So again, try to find out what encodings does the system support, and target that. If you can't kind it, try the list of encoding I gave you, and feed it to the system to see what works. In doubt, use UTF-8. In last resort, use ASCII.
+
+However, you may hold some text containing characters that cannot be represented in the target encoding. Imagine an blog article containing the sentence \textquote{The Chinese title of "Crouching Tiger, Hidden Dragon" is 臥虎藏龍}.
+
+It would be easy to encode in UTF8:
+
+\begin{py3}
+>>> 'The Chinese title of "Crouching Tiger, Hidden Dragon" is 臥虎藏龍'.encode('utf8')
+'The Chinese title of "Crouching Tiger, Hidden Dragon" is \xe8\x87\xa5\xe8\x99\x8e\xe8\x97\x8f\xe9\xbe\x8d'
+\end{py3}
+
+But it would fail in Windows-1252 since it doesn't allow ideogram:
+
+\begin{py3}
+>>> 'The Chinese title of "Crouching Tiger, Hidden Dragon" is 臥虎藏龍'.encode('windows-1252')
+Traceback (most recent call last):
+    File "<stdin>", line 1, in <module>
+    File "/home/user/.local/share/virtualenvs/book/lib/python2.7/encodings/cp1252.py", line 12, in encode
+    return codecs.charmap_encode(input,errors,encoding_table)
+UnicodeEncodeError: 'charmap' codec can't encode characters in position 57-60: character maps to <undefined>
+\end{py3}
+
+If the target system only understands an limited encoding, you will have to try to convert your text to something it can understand. You will lose information in the process, but it's a trade off you'll need to make.
+
+For latin based alphabet, you can just do:
+
+\begin{py3}
+>>> import unicodedata
+>>> neruda = "Podrán cortar todas las flores, pero no podrán detener la primavera"
+>>> unicodedata.normalize('NFKD', neruda).encode('ascii','ignore')
+b'Podran cortar todas las flores, pero no podran detener la primavera'
+\end{py3}
+
+But it won't work for East Europe, Arab or Asian languages.
+
+For those, you can use the \href{https://pypi.org/project/Unidecode/}{Unidecode} library, which is compatible Python 2 and 3.
+
+After a \lstinline{pip install unidecode}, do:
+
+\begin{py3}
+>>> import unidecode
+>>> unidecode.unidecode('The Chinese title of "Crouching Tiger, Hidden Dragon" is 臥虎藏龍')
+'The Chinese title of "Crouching Tiger, Hidden Dragon" is Wo Hu Cang Long '
+\end{py3}
+
+Please note it will most probably result in nonsensical text. And sometimes pretty funny, or even offensive ones. The goal here is to get something you can share wit very limited systems, with the most acceptable degradation possible. There is no silver bullet.
 
 \section{The problem with Python 2}
+
+
 
 open
 
 \section{Migrating your strings}
+
+Finally !
 
 %# coding: utf-8
 
