@@ -12,10 +12,10 @@
 \usepackage{layout}
 \usepackage{color}
 \usepackage{nameref}
+\usepackage[space=true]{accsupp}
 
 \usepackage[toc,xindy]{glossaries}
 \input{glossaries.tex}
-
 
 \usepackage{graphicx}
 \graphicspath{{./images/}}
@@ -46,17 +46,38 @@
   \end{mdframed}\par
 }
 
+% Keep indentation in code
+% \makeatletter
+% \def\lst@outputspace{{\ifx\lst@bkgcolor\empty\color{white}\else\lst@bkgcolor\fi\lst@visiblespace}}\lst@keepspacestrue\makeatother
 
-\lstnewenvironment{py2}[1][]{\lstset{language=python, caption="Python 2"}}{}
-
-\lstnewenvironment{py3}[1][]{\lstset{language=python, caption="Python 3"}}{}
-
-\lstnewenvironment{py2and3}[1][]{\lstset{language=python, caption="Python 2 and 3"}}{}
-
-\title{
-  Python += 1 \\
-  \large Porting legacy code from Python 2 to Python 3
+% attemp at making the code indentation copy/pastable
+\newcommand{\copyablespace}{\BeginAccSupp{method=hex,unicode,ActualText=00A0}\ \EndAccSupp{}}
+\lstset{
+  basicstyle=\ttfamily,
+  upquote=true,
+  showstringspaces=false,
+  columns=fullflexible,
+  backgroundcolor=\color{gray!25},
+  literate={*}{{\char42}}1
+           {-}{{\char45}}1
+           {\ }{{\copyablespace}}1
 }
+
+\lstnewenvironment{py2}[1][]{\lstset{
+  language=python,
+  caption="Python 2"
+}}{}
+
+\lstnewenvironment{py3}[1][]{\lstset{
+  language=python,
+  caption="Python 3"
+}}{}
+
+
+\lstnewenvironment{py2and3}[1][]{\lstset{
+  language=python,
+  caption="Python 2 and 3",
+}}{}
 
 \title{Python += 1}
 \subtitle{A pragmatic guide to the Python 2 to 3 transition}
@@ -95,13 +116,13 @@
 
 \include{chapters/builtins}
 
-\chapter{Chapter 2: imports}
+\include{chapters/text_and_bytes}
+
+\chapter{Imports}
 
 Name changes, absolute imports
 
 %https://python-future.org/compatible_idioms.html#standard-library
-
-\include{chapters/text_and_bytes}
 
 \chapter{Object Oriented Programming}\label{chap:oop}
 

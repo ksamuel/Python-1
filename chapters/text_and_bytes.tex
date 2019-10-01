@@ -1,4 +1,4 @@
-\chapter{All the stuff you wish you didn't have to know about I/O, text and bytes, but have to}\label{chap:text_and_bytes}
+\chapter{All the things you wish you didn't have to know about I/O, text and bytes}\label{chap:text_and_bytes}
 
 It's time we have \textquote{The Talk}.
 
@@ -369,9 +369,37 @@ Please note it will most probably result in nonsensical text. And sometimes pret
 
 \section{The problem with Python 2}
 
+In Python 3, you have \lstinline{bytes()} to hold a sequence of any type of byte arrangements, and \lstinline{str()} for manipulating text.
 
+In Python 2, \lstinline{str()} is actually very similar to \lstinline{bytes()}. To fix this, \lstinline{unicode()} has been introduced, that behaves more like Python 3 \lstinline{str()}. This means:
 
-open
+\begin{table}[h]
+\begin{tabular}{cccll}
+\cline{1-3}
+\multicolumn{1}{|c|}{\textit{\textbf{Python Version}}} & \multicolumn{1}{c|}{\textit{\textbf{Type for bytes}}} & \multicolumn{1}{c|}{\textit{\textbf{Type for text}}} &  &  \\ \cline{1-3}
+\multicolumn{1}{|c|}{2}                                & \multicolumn{1}{c|}{str()}                            & \multicolumn{1}{c|}{unicode()}                       &  &  \\ \cline{1-3}
+\multicolumn{1}{|c|}{3}                                & \multicolumn{1}{c|}{bytes()}                          & \multicolumn{1}{c|}{str()}                           &  &  \\ \cline{1-3}
+\multicolumn{1}{l}{}                                   & \multicolumn{1}{l}{}                                  & \multicolumn{1}{l}{}                                 &  &
+\end{tabular}
+\end{table}
+
+Very confusing indeed. What's even more confusing is that, because of a long time Python 2 didn't have \lstinline{unicode()}, strings manipulations were done on \lstinline{str()} (a.k.a \lstinline{bytes()} in Python 2). In fact, if you just write a string like this:
+
+\begin{py2}
+message = "Jörð is the Norse godess of Earth"
+\end{py2}
+
+This creates a \lstinline{str()} (so really a \lstinline{bytes()}), and the encoding it uses depends of the encoding of the code file!
+
+Some other traps:
+
+\begin{itemize}
+    \item If you didn't specify the encoding of the file in a magic comment (e.g: \lstinline{# coding: utf8}), Python 2 used ASCII by default and crashed.
+    \item You could concatenate, simply using the \lstinline{+} operator, two strings with different encoding. Python 2 wouldn't say a word: it's just a bigger sequence of bytes after all. You just ended up with a corrupted string.
+    \item If you tried to concatenate \lstinline{unicode()} with a \lstinline{str()}, Python would try to automatically decode the \lstinline{str()} using ASCII, crashing with a puzzling \lstinline{UnicodeDecodeError}.
+\end{itemize}
+
+The way Python 2 manipulated text worked most of the time anyway, because most coders are coding in English, in an ASCII environnement. The pain really started with the success of the Internet, when the entire world starting exchanging a lot of data containing many languages.
 
 \section{Migrating your strings}
 

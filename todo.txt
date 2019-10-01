@@ -28,3 +28,5 @@
 - mettre sur les sections une iconne (fixable par python-future, 2to3, futurize)
 - talk about mypy
 - page de licence: elegant book, latex, ubuntu, vscode,, python, manaspace font
+- trouver pourquoi "too␣many"
+- fix raw\_input

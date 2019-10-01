@@ -3,9 +3,6 @@
 
 80\% of porting your Python 2 code to Python 3 will be about little details. Thankfully, we'll see later than some of it can be automated or at least made easier by using tools provided by the community, so don't rush trying to change all your code base just yet.
 
-
-\section{Summary}
-
 \section{Summary}
 
 \begin{labeling}{summary}
@@ -85,7 +82,7 @@ To iterate on keys, values or key/value pairs, you need to use special methods i
 ...     "Octopod": 2 - 1,
 ...     "Xenomorph": "too many",
 ...     "Goa'uld": 0,
-...     "Wookie": "no enough" ,
+...     "Wookie": "not enough" ,
 ...     "Andalite": 2,
 ...     "Mondoshawan": "?",
 ... }
@@ -128,7 +125,7 @@ A better solution was found using memory views:
 >>> print(population.viewitems())
 ... print(population.viewvalues())
 ... print(population.viewkeys())
-dict_items([('Wookie', 'no enough'), ("Goa'uld", 0), ('Octopod', 1), ('Xenomorph', 'too many'), ('Andalite', 2), ('Mondoshawan', '?')])
+dict_items([('Wookie', 'not enough'), ("Goa'uld", 0), ('Octopod', 1), ('Xenomorph', 'too many'), ('Andalite', 2), ('Mondoshawan', '?')])
 dict_values(['no enough', 0, 1, 'too many', 2, '?'])
 dict_keys(['Wookie', "Goa'uld", 'Octopod', 'Xenomorph', 'Andalite', 'Mondoshawan'])
 \end{py2}
