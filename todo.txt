@@ -30,3 +30,4 @@
 - page de licence: elegant book, latex, ubuntu, vscode,, python, manaspace font
 - trouver pourquoi "too␣many"
 - fix raw\_input
+- align python2/3 bytes/str comparison table
