@@ -405,9 +405,89 @@ The way Python 2 manipulated text worked most of the time anyway, because most c
 
 \section{Migrating your strings}
 
-Finally !
+Finally, we get to the point!
 
-%# coding: utf-8
+First, you should make sure you use the best practices in your Python 2 code before moving to Python 3. To do so, ensure you know the encoding of all the code files in your project. Ideally, it should be UTF-8.
+
+Then, add a special comment to all your files to tell Python you are using this encoding. It should be the first or second line of each file, and formatted that way: \lstinline{# coding: <encoding name>}. E.G:
+
+\begin{py2and3}
+# coding: utf-8
+\end{py2and3}
+
+You may see in tutorials fancy headers like \lstinline{# -*- coding: <encoding> -*-}. There is not need for the \lstinline{-*-}, it's an artefact that people keep copy/pasting blindly and has only a benefit if you use Emacs.
+
+Without this line, Python 2 default to ASCII, which leads to a crash if you use any non ASCII characters in your code, even in commens. In Python 3, Python default to UTF-8.
+
+The, you need to avoid using \lstinline{bytes()} has much as possible. In Python 2, when you create a string, it's like a \lstinline{bytes()}. But if you create a string with a \lstinline{u} prefix, it will create a \lstinline{unicode()}, which behaves like the Python 3 text type.
+
+So instead of doing:
+
+\begin{py2}
+>>> msg = "This is a string"
+>>> type(msg)
+<type 'str'>
+\end{py2}
+
+Do:
+
+\begin{py2}
+>>> msg = u"This is a string" # note the u prefix
+>>> type(msg)
+<type 'unicode'>
+\end{py2}
+
+The \lstinline{u} prefix does nothing in Python 3, a regular \lstinline{str()} will be created. But it's ok since they behave like \lstinline{unicode()}.
+
+However, this is very combersom. Instead, do:
+
+\begin{py2}
+from __future__ import unicode_literals
+\end{py2}
+
+It will make all string literals create a \lstinline{unicode}:
+
+\begin{py2}
+>>> msg = "This is a string"
+>>> type(msg)
+<type 'unicode'>
+\end{py2}
+
+Again, this does nothing in Python 3, which is what we want.
+
+Unfortunatly, we don't want to turn all \lstinline{str()} to \lstinline{unicode()}.
+
+We do want to convert all strings meant to be readable by a human: help text, user messages, labels, etc.
+
+But we do \textbf{not} want to convert bytes (mistakenly stored in a \lstinline{str()} in Python 2): network packets, pickled objects, dumps from the \lstinline{struct} module, file paths, anything to be written in a file in \lstinline{b} mode, etc.
+
+So you need to go through your files, and find those. Then mark them as \lstinline{bytes()}, by putting a \lstinline{b} in front of them.
+
+\begin{py2}
+>>> msg = b"This is a string"
+>>> type(msg)
+<type 'str'>
+\end{py2}
+
+In Python 2, this will keep it as a \lstinline{str()}. In Python 3, it will make it a \lstinline{bytes()}. Again, this is what we want.
+
+Be careful though, indexing or iterating through a \lstinline{str()} in Python 2 gives you \lstinline{str()}:
+
+\begin{py2}
+>>> list(b'qwerty')
+['q', 'w', 'e', 'r', 't', 'y']
+\end{py2}
+
+But indexing or iterating through a \lstinline{bytes()} in Python 3 will give you \lstinline{int()}:
+
+\begin{py2}
+>>> list(b'qwerty')
+[113, 119, 101, 114, 116, 121]
+\end{py2}
+
+It's a rare use case, but if you happen to do that, either \lstinline(.decode()) the bytes to get a \lstinline{unicode()} in Python 2 and a \lstinline{str()} in Python 3, which will give you letters. Or call \lstinline{bytearray()} on the bytes to ensure numbers everywhere.
+
+Then, there is the matter of text files.
 
 %__future__
 
