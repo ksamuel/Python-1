@@ -1,8 +1,8 @@
-\chapter{All the things you wish you didn't have to know about I/O, text and bytes}\label{chap:text_and_bytes}
+\chapter{All the things you wish you didn't have to know about text and bytes}\label{chap:text_and_bytes}
 
 It's time we have \textquote{The Talk}.
 
-The least obvious part about moving from Python 2 to 3 is dealing with inputs and outputs, the bytes in between and how people manipulate text.
+The least obvious part about moving from Python 2 to 3 is dealing with inputs and outputs, the bytes in between and how people manipulate text. So this chapter is not about migrating, but a way to make sure you understand key concepts before the next one.
 
 In fact, I give \textquote{The Talk} even to people that are not migrating anything, because my experience is that most coders have no idea what those \lstinline{UnicodeDecodeError} are all about.
 
@@ -11,6 +11,19 @@ So read it with attention, it will make all Python coding, present and future, w
 First, we'll start with a deep explanation on how things work. We'll only focus on the differences between Python 2 and 3 after that.
 
 It's a pretty long disgression, but it will pay off.
+
+\section{Summary}
+
+\begin{labeling}{summary}
+    \item [Bytes are not text]: \lstinline{bytes()} can contain any kind of data.
+    \item [str() for manipulating text]: go from \lstinline{bytes()} to \lstinline{str()} using \lstinline{.decode()}, and the reverse with \lstinline{.encode()}
+    \item [Rule 1: your code files should be in UTF-8]: setup your editor and use \lstinline{\# coding: utf8}
+    \item [Rule 2: when you get an input, .decode()]: incomming \lstinline{bytes()} should be decoded into \lstinline{str()}
+    \item [Rule 3: when you do an output, .encode()]: outgoing \lstinline{str()} should be encoded into \lstinline{bytes()}
+    \item [But how do I know the encoding being used ?]: you can't for sure, but metadata and tooling can help
+    \item [Workarounds for when things go wrong]: normalize to ASCII or use error handlers
+    \item [The problem with Python 2]: \lstinline{str()} is like a \lstinline{bytes()}, use \lstinline{unicode()}
+\end{labeling}
 
 \section{A tale of text and bytes}
 
@@ -402,200 +415,3 @@ Some other traps:
 \end{itemize}
 
 The way Python 2 manipulated text worked most of the time anyway, because most coders are coding in English, in an ASCII environnement. The pain really started with the success of the Internet, when the entire world starting exchanging a lot of data containing many languages.
-
-\section{Migrating your strings}
-
-Finally, we get to the point!
-
-First, you should make sure you use the best practices in your Python 2 code before moving to Python 3. To do so, ensure you know the encoding of all the code files in your project. Ideally, it should be UTF-8.
-
-Then, add a special comment to all your files to tell Python you are using this encoding. It should be the first or second line of each file, and formatted that way: \lstinline{# coding: <encoding name>}. E.G:
-
-\begin{py2and3}
-# coding: utf-8
-\end{py2and3}
-
-You may see in tutorials fancy headers like \lstinline{# -*- coding: <encoding> -*-}. There is not need for the \lstinline{-*-}, it's an artefact that people keep copy/pasting blindly and has only a benefit if you use Emacs.
-
-Without this line, Python 2 default to ASCII, which leads to a crash if you use any non ASCII characters in your code, even in commens. In Python 3, Python default to UTF-8.
-
-The, you need to avoid using \lstinline{bytes()} has much as possible. In Python 2, when you create a string, it's like a \lstinline{bytes()}. But if you create a string with a \lstinline{u} prefix, it will create a \lstinline{unicode()}, which behaves like the Python 3 text type.
-
-So instead of doing:
-
-\begin{py2}
->>> msg = "This is a string"
->>> type(msg)
-<type 'str'>
-\end{py2}
-
-Do:
-
-\begin{py2}
->>> msg = u"This is a string" # note the u prefix
->>> type(msg)
-<type 'unicode'>
-\end{py2}
-
-The \lstinline{u} prefix does nothing in Python 3, a regular \lstinline{str()} will be created. But it's ok since they behave like \lstinline{unicode()}.
-
-However, this is very combersom. Instead, do:
-
-\begin{py2}
-from __future__ import unicode_literals
-\end{py2}
-
-It will make all string literals create a \lstinline{unicode}:
-
-\begin{py2}
->>> msg = "This is a string"
->>> type(msg)
-<type 'unicode'>
-\end{py2}
-
-Again, this does nothing in Python 3, which is what we want.
-
-Unfortunatly, we don't want to turn all \lstinline{str()} to \lstinline{unicode()}.
-
-We do want to convert all strings meant to be readable by a human: help text, user messages, labels, etc.
-
-But we do \textbf{not} want to convert bytes (mistakenly stored in a \lstinline{str()} in Python 2): network packets, pickled objects, dumps from the \lstinline{struct} module, file paths, anything to be written in a file in \lstinline{b} mode, etc.
-
-So you need to go through your files, and find those. Then mark them as \lstinline{bytes()}, by putting a \lstinline{b} in front of them.
-
-\begin{py2}
->>> msg = b"This is a string"
->>> type(msg)
-<type 'str'>
-\end{py2}
-
-In Python 2, this will keep it as a \lstinline{str()}. In Python 3, it will make it a \lstinline{bytes()}. Again, this is what we want.
-
-Be careful though, indexing or iterating through a \lstinline{str()} in Python 2 gives you \lstinline{str()}:
-
-\begin{py2}
->>> list(b'qwerty')
-['q', 'w', 'e', 'r', 't', 'y']
-\end{py2}
-
-But indexing or iterating through a \lstinline{bytes()} in Python 3 will give you \lstinline{int()}:
-
-\begin{py2}
->>> list(b'qwerty')
-[113, 119, 101, 114, 116, 121]
-\end{py2}
-
-It's a rare use case, but if you happen to do that, either \lstinline(.decode()) the bytes to get a \lstinline{unicode()} in Python 2 and a \lstinline{str()} in Python 3, which will give you letters. Or call \lstinline{bytearray()} on the bytes to ensure numbers everywhere.
-
-Then, there is the matter of text files.
-
-%__future__
-
-u
-
-decode
-
-encode
-
-codecs.open() (and perfs)
-
-formatting bytes
-
-always call open() with an encoding or else
-
-buffer. Par exemple, pour écrire des octets sur stdout, utilisez sys.stdout.buffer.write(b'abc').
-
-unfortunately, changing sys.stdout to accept only unicode breaks a lot of libraries that expect it to accept encoded bytestrings. – nosklo Dec 4 '09 at 19:14
-
-
-\section{Fun with file paths}
-
-\section{Wait, there is I/O}
-
-% http://www.dabeaz.com/python3io_2010/MasteringIO.pdf
-
-Text strings in Python 3 require either 2x as much memory to store as Python 2
-
-
-bad filenames were easy to create in python 2
-
-If you ever see a \lstinline{\udcxx} character, it means that a non-decodable byte was passed in from a system interface
-
-s.decode('utf-8','surrogateescape')
-
-TextIOWrapper 10 times faster than codecs.open
-
-basestring
-
-%All backslashes in raw string literals are interpreted literally. This means that '\U' and '\u' escapes in raw strings are not treated specially. For example, r'\u20ac' is a string of 6 characters in Python 3.0, whereas in 2.6, ur'\u20ac' was the single “euro” character. (Of course, this change only affects raw string literals; the euro character is '\u20ac' in Python 3.0.)
-
-% has been removed and reinstroduced
-
-pathlib
-
-%# coding: utf8
-
-\section{file()}
-
-\begin{py2}
-from io import IOBase
-
-if isinstance(someobj, IOBase):
-\end{py2}
-
-\section{from buffer() tp memoryview()}
-
-Those two functions respectively create objects of the same name - a \lstinline{buffer} and a \lstinline{memoryview}. Both are a way to get a subset of something without copying it:
-
-\begin{py2}
->>> donkey_lines = "Are we there yet ?\n" * 10000
->>> # this copies the data into a new object:
->>> for x in donkey_lines[:6]:
-...    print(x)
-A
-r
-e
-
-w
-e
->>> # those don't:
->>> for x in buffer(donkey_lines, 0, 5):
-...    print(x)
-A
-r
-e
-
-w
-e
->>> for x in memoryview(donkey_lines)[:5]:
-...    print(x)
-A
-r
-e
-
-w
-e
-\end{py2}
-
-It works on \lstinline{bytes()}, \lstinline{bytearray}, \lstinline{array.array}...Everything that implements the so-called \textquote{buffer protocol}. This is a very nice optimization that can save quite a lot of memory/CPU if you manipulate huge chunks of bytes and pass around subset of them, e.g: to files or sockets.
-
-With the rise of performant c libs wrapped in Python (numpy, GUI toolkits, database drivers, etc.), the need for more information about the underlying data than what \lstinline{buffer()} was offering became important. \lstinline{memoryview} provides an answer to that, being able to return the shape, dimension or type or the object behind it.
-
-\lstinline{buffer()} is not more in Python 3, just replace it with \lstinline{memoryview()}. The later exists in Python 2.7, plus it does the same thing, just better. The only difficulty will be that \lstinline{buffer()} accepts \lstinline{unicode()} objects but \lstinline{memoryview()} only accept bytes, and so you'll need to encode them.
-
-So:
-
-\begin{py2}
-from imaginary_lib import get_tps_reports, send_those_bytes
-
-# Imaginary code returning a lot of bytes
-tps_reports = get_tps_reports()
-
-# Imaginary code writting those bytes to a sockets by chunks
-# of 1Mio
-step = 3
-stop = len(tps_reports)
-for i in range(0, stop, step):
-    send_those_bytes(buffer(tps_reports, i, step))
-
-\end{py2}
