@@ -19,7 +19,9 @@ You may see in tutorials fancy headers like \lstinline{# -*- coding: <encoding> 
 
 Without this line, Python 2 default to ASCII, which leads to a crash if you use any non ASCII characters in your code, even in commens. In Python 3, Python default to UTF-8.
 
-The, you need to avoid using \lstinline{bytes()} has much as possible. In Python 2, when you create a string, it's like a \lstinline{bytes()}. But if you create a string with a \lstinline{u} prefix, it will create a \lstinline{unicode()}, which behaves like the Python 3 text type.
+\section{Properly using bytes(), str() and unicode()}
+
+You need to avoid using \lstinline{bytes()} has much as possible. In Python 2, when you create a string, it's like a \lstinline{bytes()}. But if you create a string with a \textquote{u} prefix, it will create a \lstinline{unicode()}, which behaves like the Python 3 text type.
 
 So instead of doing:
 
@@ -37,15 +39,15 @@ Do:
 <type 'unicode'>
 \end{py2}
 
-The \lstinline{u} prefix does nothing in Python 3, a regular \lstinline{str()} will be created. But it's ok since they behave like \lstinline{unicode()}.
+The \textquote{u} prefix does nothing in Python 3, a regular \lstinline{str()} will be created. But it's ok since they behave like \lstinline{unicode()}.
 
-However, this is very combersom. Instead, do:
+However, this is very combersome. Instead, you can use this magical import:
 
 \begin{py2}
 from __future__ import unicode_literals
 \end{py2}
 
-It will make all string literals create a \lstinline{unicode}:
+It must be at the top of each file, and will make all string literals create a \lstinline{unicode()}:
 
 \begin{py2}
 >>> msg = "This is a string"
@@ -55,13 +57,13 @@ It will make all string literals create a \lstinline{unicode}:
 
 Again, this does nothing in Python 3, which is what we want.
 
-Unfortunatly, we don't want to turn all \lstinline{str()} to \lstinline{unicode()}.
+But careful, we don't want to turn  \textbf{all} \lstinline{str()} to \lstinline{unicode()}!
 
 We do want to convert all strings meant to be readable by a human: help text, user messages, labels, etc.
 
-But we do \textbf{not} want to convert bytes (mistakenly stored in a \lstinline{str()} in Python 2): network packets, pickled objects, dumps from the \lstinline{struct} module, file paths, anything to be written in a file in \lstinline{b} mode, etc.
+But we do \textbf{not} want to convert bytes (mistakenly stored in a \lstinline{str()} in Python 2): network packets, pickled objects, dumps from the \lstinline{struct} module, file paths, anything to be written in a file in "b" mode, etc.
 
-So you need to go through your files, and find those. Then mark them as \lstinline{bytes()}, by putting a \lstinline{b} in front of them.
+So you need to go through your files, and find those. Then mark them as \lstinline{bytes()}, by adding a \textquote{b} prefix.
 
 \begin{py2}
 >>> msg = b"This is a string"
@@ -87,28 +89,97 @@ But indexing or iterating through a \lstinline{bytes()} in Python 3 will give yo
 
 It's a rare use case, but if you happen to do that, either \lstinline(.decode()) the bytes to get a \lstinline{unicode()} in Python 2 and a \lstinline{str()} in Python 3, which will give you letters. Or call \lstinline{bytearray()} on the bytes to ensure numbers everywhere.
 
-Then, there is the matter of text files.
+\begin{warning}
+If you want to iterate on a \lstinline{bytes()} and get bytes of length 1 as a result in Python 3 like in Python 2, you need to do call \lstinline{bytes([value])}, not \lstinline{bytes(value)} to convert the result (note the list).
 
-%__future__
+E.G, in Python 2 when you do
 
-u
+\begin{py2}
+>>> for x in b'qwerty':
+...    print(x)
+q
+w
+e
+r
+t
+y
 
-decode
+\end{py2}
 
-encode
+In Python 3, you would need to do:
 
-codecs.open() (and perfs)
+\begin{py3}
+>>> for x in b'qwerty':
+...    print(bytes([x])) # NOT bytes(x)
+q
+w
+e
+r
+t
+y
 
-formatting bytes
+\end{py3}
 
-always call open() with an encoding or else
+For a cross compatible code, use a function:
 
-buffer. Par exemple, pour écrire des octets sur stdout, utilisez sys.stdout.buffer.write(b'abc').
+\begin{py2and3}
+import sys
 
-unfortunately, changing sys.stdout to accept only unicode breaks a lot of libraries that expect it to accept encoded bytestrings. – nosklo Dec 4 '09 at 19:14
+if sys.version_info.major >= 3:
+    def iterbytes(data):
+        return (bytes((x,)) for x in data)
+else:
+    iterbytes = bytes
+\end{py2and3}
+
+Or use tooling to provide a standardized \lstinline{bytes()} for you.
+
+\end{warning}
+
+\section{Opening files}
+
+When you use \lstinline{open()} to read a file, it has two modes: binary mode, and text mode. It's very misleading, in fact, all files are binaries. Some binaries actually contains text, although most file don't. Still, not only \lstinline{open()} maintain this false dichotomy, it actually opens files in text mode by default.
+
+If you open a so-called binary file (zip, avi, mp3, odt, doc, etc.), you should use the \textquote(b) flag:
+
+\begin{py2and3}
+with open(the_file, 'b') as f:
+    data = f.read()
+\end{py2and3}
+
+There is no notion of lines, so you must use \lstinline{.read()}. You will get \lstinline{str()} in Python 2, and \lstinline{bytes()} in Python 3. There is not much to do here, just be careful of what you do with the \lstinline{bytes()} after, since we have in the previous section there are small differences.
+
+However, if you open a so-called text file (json, csv, ini, xml, etc.), you should use the \lstinline{encoding} parameter:
+
+\begin{py3}
+with open(the_file, encoding="utf8") as f:
+    for line in f:
+        ...
+\end{py3}
+
+This will give you \lstinline{unicode()} in Python 2 and \lstinline{str()} in Python 3, and let you iterate line by line. This is where the previous chapter about encoding is useful. Follow its advices to choose the proper encoding.
+
+Now, Python 2 doesn't have this parameter, but you can use \lstinline{codecs.open}:
+
+\begin{py2and3}
+if sys.version_info.major < 3:
+    from codecs import open
+\end{py2and3}
+
+Please note, however, that it is much, much slower than the original Python 2 \lstinline{open()}.
+
+
+
+
+
 
 
 \section{Fun with file paths}
+
+\section{Formatting}
+
+
+formatting bytes
 
 \section{Wait, there is I/O}
 
@@ -199,3 +270,12 @@ for i in range(0, stop, step):
     send_those_bytes(buffer(tps_reports, i, step))
 
 \end{py2}
+
+
+
+
+
+
+buffer. Par exemple, pour écrire des octets sur stdout, utilisez sys.stdout.buffer.write(b'abc').
+
+unfortunately, changing sys.stdout to accept only unicode breaks a lot of libraries that expect it to accept encoded bytestrings. – nosklo Dec 4 '09 at 19:14

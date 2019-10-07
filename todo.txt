@@ -31,3 +31,4 @@
 - trouver pourquoi "too␣many"
 - fix raw\_input
 - align python2/3 bytes/str comparison table
+- bytes() in Python future for iteration
