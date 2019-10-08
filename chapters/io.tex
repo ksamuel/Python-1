@@ -168,13 +168,33 @@ if sys.version_info.major < 3:
 
 Please note, however, that it is much, much slower than the original Python 2 \lstinline{open()}.
 
-
-
-
-
-
-
 \section{Fun with file paths}
+
+File paths are one of those features that just fork 99\% of the time, until it doesn't. One reason is that Python is a cross-plateform language, but different operating systems may treat paths differently.
+
+We usually picture file paths as strings, but infortunatly and as stated by the Python documentation itself: \textquote{some file names may not be representable as strings on Unix, so applications that need to support arbitrary file names on Unix should use bytes objects to represent path names. Vice versa, using bytes objects cannot represent all file names on Windows (in the standard mbcs encoding), hence Windows applications should use string objects to access all files.}
+
+So Python accept both \lstinline{str()} (or \lstinline{unicode()} in Python2) and \lstinline{\bytes()} when you interract with the file system. And it will return you the same type you used as input:
+
+\begin{py3}
+>>> import os
+>>> type(os.listdir(b'.')[0]) # use bytes, get bytes. In Python 2, this would return a str()
+<class 'bytes'>
+>>> type(os.listdir('.')[0]) # use string, get string. Same with unicode() for Python 2.
+<class 'str'>
+\end{py3}
+
+And of course most Python 2 programs just use the \lstinline{str()} type to deal with path, using it like a string, while it really behaves like a \lstinline{bytes()} under the hood. Also remember, any \lstinline{str()} in Python 2 is \textbf{in the encoding of the code file}. So people create file names with implicit encoding without knowing it. Luckily most of the time, this is ASCII, as developpers all around the world have been bitten with file names enought to be very careful to choose the most basic ones when they can.
+
+What does this mean for you ?
+
+First, look at all the hard coded file path in your code. Decide if they should be text or arbitrary bytes and mark them accordingly. Hint: unless you are doing something very specific, and on Unix, it should be text. Check that the return value is of the type you expect (\lstinline{str()} or \lstinline{bytes()}, depending of what you passed), and that the rest of the code using this value is made to handle this type.
+
+Then, got through all code using the \lstinline{os}, \lstinline{shutil} and \lstinline{glob} modules
+
+File path coming from somewhere else (database, config files, etc).
+
+Surogate escape
 
 \section{Formatting}
 
