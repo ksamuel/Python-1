@@ -33,3 +33,19 @@
 - align python2/3 bytes/str comparison table
 - bytes() in Python future for iteration
 - strats for encoded file path
+- check we got all from http://www.dabeaz.com/python3io_2010/MasteringIO.pdf
+- say that p3 string take x2 to x4 more space and copy is slower for large string
+- dire la valeur par défaut de l'necoding de open()
+- attention avec python 2: >>> with open('/tmp/test', 'wb') as f: f.write(u'test')
+
+
+>>> f = open("jalape\xf1o.txt","w")
+>>> f.write("Bwahahahaha!\n")
+>>> f.close()
+
+>>> f = open("jalape\xf1o.txt")Traceback (most recent call last):...IOError: [Errno 2] No such file or directory: 'jalapeño.txt'>>>
+
+
+
+
+In early versions of Python 3, such names were silently discarded (made invisible).  Yikes

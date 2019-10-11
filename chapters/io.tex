@@ -57,11 +57,13 @@ It must be at the top of each file, and will make all string literals create a \
 
 Again, this does nothing in Python 3, which is what we want.
 
-But careful, we don't want to turn  \textbf{all} \lstinline{str()} to \lstinline{unicode()}!
+One side effect though, is that text strings in Python 3 require between two and four times as much memory to store as int Python 2, plus big text blob take more time to copy. There is no fix for that.
+
+In any case, be careful, as we don't want to turn  \textbf{all} \lstinline{str()} to \lstinline{unicode()}!
 
 We do want to convert all strings meant to be readable by a human: help text, user messages, labels, etc.
 
-But we do \textbf{not} want to convert bytes (mistakenly stored in a \lstinline{str()} in Python 2): network packets, pickled objects, dumps from the \lstinline{struct} module, file paths, anything to be written in a file in "b" mode, etc.
+But we do \textbf{not} want to convert data meant to be raw bytes but mistakenly stored in a \lstinline{str()} in Python 2: network packets, pickled objects, dumps from the \lstinline{struct} module, anything to be written in a file in "b" mode, etc.
 
 So you need to go through your files, and find those. Then mark them as \lstinline{bytes()}, by adding a \textquote{b} prefix.
 
@@ -73,7 +75,25 @@ So you need to go through your files, and find those. Then mark them as \lstinli
 
 In Python 2, this will keep it as a \lstinline{str()}. In Python 3, it will make it a \lstinline{bytes()}. Again, this is what we want.
 
-Be careful though, indexing or iterating through a \lstinline{str()} in Python 2 gives you \lstinline{str()}:
+Sometimes, for some reason, you may need to check if something is not just text, but potential text, so text and bytes. In Python 2, we could do:
+
+\begin{py2}
+isinstance(data, basestring)
+\end{py2}
+
+While there is tooling to help with that, a possible manual fix that works with Python 2 and 3 is:
+
+\begin{py2and3}
+try:
+  basestring
+except NameError:
+  basestring = str
+isinstance(data, basestring)
+\end{py2and3}
+
+Be careful though, as I said that \lstinline{str()} in Python
+
+indexing or iterating through a \lstinline{str()} in Python 2 gives you \lstinline{str()}:
 
 \begin{py2}
 >>> list(b'qwerty')
@@ -132,13 +152,13 @@ else:
     iterbytes = bytes
 \end{py2and3}
 
-Or use tooling to provide a standardized \lstinline{bytes()} for you.
+Or use the tools we'll introduce later to provide a standardized \lstinline{bytes()} for you.
 
 \end{warning}
 
 \section{Opening files}
 
-When you use \lstinline{open()} to read a file, it has two modes: binary mode, and text mode. It's very misleading, in fact, all files are binaries. Some binaries actually contains text, although most file don't. Still, not only \lstinline{open()} maintain this false dichotomy, it actually opens files in text mode by default.
+When you use \lstinline{open()} to read a file, it has two modes: binary mode, and text mode. It's very misleading, in fact, all files are binaries. Some binaries actually contains text, although most files don't. Still, not only \lstinline{open()} maintain this false dichotomy, it actually opens files in text mode by default.
 
 If you open a so-called binary file (zip, avi, mp3, odt, doc, etc.), you should use the \textquote(b) flag:
 
@@ -147,7 +167,7 @@ with open(the_file, 'b') as f:
     data = f.read()
 \end{py2and3}
 
-There is no notion of lines, so you must use \lstinline{.read()}. You will get \lstinline{str()} in Python 2, and \lstinline{bytes()} in Python 3. There is not much to do here, just be careful of what you do with the \lstinline{bytes()} after, since we have in the previous section there are small differences.
+There is no notion of lines in this mode, so you must use \lstinline{.read()}. You will get \lstinline{str()} in Python 2, and \lstinline{bytes()} in Python 3. There is not much to do here, just be careful of what you do with the \lstinline{bytes()} after, since we have in the previous section there are small differences.
 
 However, if you open a so-called text file (json, csv, ini, xml, etc.), you should use the \lstinline{encoding} parameter:
 
@@ -159,14 +179,13 @@ with open(the_file, encoding="utf8") as f:
 
 This will give you \lstinline{unicode()} in Python 2 and \lstinline{str()} in Python 3, and let you iterate line by line. This is where the previous chapter about encoding is useful. Follow its advices to choose the proper encoding.
 
-Now, Python 2 doesn't have this parameter, but you can use \lstinline{codecs.open}:
+Now, Python 2 doesn't have this parameter, but you can use \lstinline{io.open()}:
 
 \begin{py2and3}
-if sys.version_info.major < 3:
-    from codecs import open
+from io import open
 \end{py2and3}
 
-Please note, however, that it is much, much slower than the original Python 2 \lstinline{open()}.
+This does nothing in Python 3 and provides you with the \lstinline{open()} from Python 3 in Python 2.
 
 \section{Fun with file paths}
 
@@ -174,7 +193,7 @@ File paths are one of those features that just fork 99\% of the time, until it d
 
 We usually picture file paths as strings, but infortunatly and as stated by the Python documentation itself: \textquote{some file names may not be representable as strings on Unix, so applications that need to support arbitrary file names on Unix should use bytes objects to represent path names. Vice versa, using bytes objects cannot represent all file names on Windows (in the standard mbcs encoding), hence Windows applications should use string objects to access all files.}
 
-So Python accept both \lstinline{str()} (or \lstinline{unicode()} in Python2) and \lstinline{\bytes()} when you interract with the file system. And it will return you the same type you used as input:
+So, python accept both \lstinline{str()} (or \lstinline{unicode()} in Python2) and \lstinline{\bytes()} when you interract with the file system. And it will return you the same type you used as input:
 
 \begin{py3}
 >>> import os
@@ -184,47 +203,134 @@ So Python accept both \lstinline{str()} (or \lstinline{unicode()} in Python2) an
 <class 'str'>
 \end{py3}
 
-And of course most Python 2 programs just use the \lstinline{str()} type to deal with path, using it like a string, while it really behaves like a \lstinline{bytes()} under the hood. Also remember, any \lstinline{str()} in Python 2 is \textbf{in the encoding of the code file}. So people create file names with implicit encoding without knowing it. Luckily most of the time, this is ASCII, as developpers all around the world have been bitten with file names enought to be very careful to choose the most basic ones when they can.
+It's not a problem with Python in itself. It's the reality of computing and all languages have to deal with it in some way.  However, we do get an extra issue on our hand while porting code from Python 2 to Python 3, since the new version changes the semantic of text handling. Our problem has a problem now.
+
+Because of course most Python 2 programs just use the \lstinline{str()} type to deal with path, using it like a string, while it really behaves like a \lstinline{bytes()} under the hood. Also remember, any \lstinline{str()} in Python 2 is \textbf{in the encoding of the code file}. So people write file names with implicit encoding without knowing it. Luckily most of the time, this is ASCII, as developpers all around the world have been bitten with file names enought to be very careful to choose the most basic ones when they can. Still, this is a source of bugs in the transition.
+
+It also means that you can easily create a file in Python 2 you can't open the same way in Python 3.
+
+Let's say you have a CP850 encoded Python 2 script, and you do:
+
+\begin{py2}
+>>> with open("chevron_Å.txt","w") as f:
+...    f.write("Locked")
+\begin{py2}
+
+Or even if you have an ASCII encoded script and you do:
+
+\begin{py2}
+>>> with open("chevron_\x8f.txt","w") as f:
+...    f.write("Locked")
+\begin{py2}
+
+Or an user entered than. Or a database fed you that. Or it's stored in some config file somewhere.
+
+Trying to open it with Python 3, the stdlib will read \lstinline{sys.getfilesystemencoding()}, which will be something else than CP850 (probably UTF8), and use it to encode the filename then pass it to the OS:
+
+\begin{py2}
+>>> with open("chevron_Å.txt") as f:
+...    f.write("Locked")
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+FileNotFoundError: [Errno 2] No such file or directory: 'chevron_Å.txt'
+\end{py2}
 
 What does this mean for you ?
 
-First, look at all the hard coded file path in your code. Decide if they should be text or arbitrary bytes and mark them accordingly. Hint: unless you are doing something very specific, and on Unix, it should be text. Check that the return value is of the type you expect (\lstinline{str()} or \lstinline{bytes()}, depending of what you passed), and that the rest of the code using this value is made to handle this type.
+You need to assess your situation. Most of the time, there is not much to do: your application probably needs only basic path support. The 99\% that works will do just fine. Use only \lstinline{str()} on Python 3 and \lstinline{unicode()} on Python 2 for the path you hardcode. For your config file, choose an encoding (prefer UTF8), and decode, and use the text result. It's like with other texts.
 
-Then, got through all code using the \lstinline{os}, \lstinline{shutil} and \lstinline{glob} modules
+One of the rare scenario that requires work would be if you were in te case were you have harcoded non ASCII file paths in a code file with an encoding that is different that the file system encoding. E.G: you have \lstinline{os.listdir("./Téléchargements")} (which is \textquote{Download} in Frenc) hardcoded in a \textquote{latin-1} Python file on an Ubuntu server using a UTF8 for its file system. If you change your path from bytes to text, Python will use \lstinline{sys.getfilesystemencoding()} to encode it and it will fail:
 
-File path coming from somewhere else (database, config files, etc).
+\begin{py2}
+>>> os.listdir('./Téléchargements/')
+Traceback (most recent call last):
+    File "<stdin>", line 1, in <module>
+OSError: [Errno 2] No such file or directory: './Téléchargements/'
+\end{py2}
 
-Surogate escape
+That's an edge case, it's inlikely it will happen for you. But just in case it does, know that you shall encode it manually to the legacy encoding once, check if it exists, and rename it using \lstinline{sys.getfilesystemencoding()}:
+
+\begin{py2}
+path = './Téléchargements/'
+legacy_encoded_path = path.encode('latin-1))
+if os.path.isdir(legacy_encoded_path):
+    os.path.rename(legacy_encoded_path, path)
+os.listdir(path)
+\end{py2}
+
+Another possible, albeit very specific, source of problem, is if you are scanning a collection of files or getting you paths from an external source (DB, socket) you don't have control over, but still need to do some path manipulation with it. Indeed, you may - although rarely - encounter paths that are badly encoded, or with no encoding metadata to decode them, and provided to you as bytes. In that case you need to use \textquote{surrogateescape}: it's a special non destructive encoding that decodes anything to utf8, and can encode back to the original one. It won't look pretty, but you'll keep the data intact, and it will result in a \lstinline{str()}:
+
+\begin{py3}
+>>> # getting some cp850 encoded text as bytes
+>>> data = "chevron_Å.txt".encode('cp850')
+>>> # decode it as utf8.
+>>> decoded = data.decode('utf8', errors='surrogateescape')
+>>> decoded
+'chevron_\udc8f.txt'
+>>> type(decoded)
+<class 'str'>
+>>> # encode, STILL USING UTF8, to get back the original bytes
+>>> encoded = decoded.encode('utf8', errors='surrogateescape')
+>>> type(encoded)
+<class 'bytes'>
+>>> encoded
+b'chevron_\x8f.txt'
+>>> # data is intact
+>>> encoded.decode('cp850')
+'chevron_Å.txt'
+\end{py3}
+
+So when you get an input with file paths that are bytes, decode them using \lstinline{.decode('utf8', errors='surrogateescape')}. Make all operations you need on the path. Then when you want to pass it to a file-related function, pass it through \lstinline{.encode('utf8', errors='surrogateescape')} to get the original bytes back.
+
+Remember two things:
+
+\begin{itemize}
+    \item File-related functions return text if you pass it text, otherwise it returns bytes.
+    \item File-related functions may return some path as bytes in the middle of all the text results. E.G: if it can't decode a path.
+\end{itemize}
+
+If you want a truely robust program, you should check for this.
+
+When you want a bullet proof way of writting messed up paths to the terminal, it can get a bit hairy:
+
+\begin{py2and3}
+import sys
+
+# print will not use surrogateescape so it may fail, so we need to do it
+# manually and write the result to sys.stdout.
+# Except sys.sdtout doesn't support direct bytes writting in python 3
+# so we write to stdout directly in Python 2, or to its buffer in Python 3
+stdout_fd = getattr(sys.stdout, 'buffer', sys.stdout)
+
+# We encode to bytes using surrogateescape because writing
+# This assume 'text' has been created using surrogate escape
+def print_dirty_bytes(text, end=b'\n'):
+     stdout_fd.write(text.encode("utf8", error="surrogateescape") + end)
+
+print_dirty_bytes(the_path_less_travelled)
+\end{py2and3}
+
+At last, if you share paths with another system, encode it with UTF8 with surrogateescape to get the original bytes and share them 'as-is' with them, since you don't know what strategy they are going to use to deal with weird file names.
+
+Again, I'd like to insist those are not common use cases. Python softwares that manage a lot of files they have no control over (E.G: Dropbox syncing your files or Beet loading up your music library) have to deal with this, but you may very well not.
+
+I also know it is tempting to use the excellent \lstinline{pathlib} at this point, especially since there is a backport on pypi. But in my opinion, it would add complexity to the migration. Better keep it for the new python-3-only projects.
 
 \section{Formatting}
 
+In Python 2, you could call \lstinline{.format()} on both \lstinline{str()} and \lstinline{unicode()}. This ability has been removed in Python 3: only text can be formatted this way, or using the newest f-strings.
 
-formatting bytes
+For a while, Python 3 also removed the possibility to format using \lstinline{\%}, leaving low-level devs to deal manually with byte formatting for sockets or images. After a push back from the community, it has been added back to Python 3.5.
+
+If your bytes are text, you should decode anyway, so you'll be able to format all you want. If your bytes need to be manipulated as-is, then either you must target Python 3.5, or change all your byte formatting code for something you do manually. Given the work the later option represent, I would advise to just target 3.5 if you have a lot of bytes to format.
 
 \section{Wait, there is I/O}
 
-% http://www.dabeaz.com/python3io_2010/MasteringIO.pdf
-
-Text strings in Python 3 require either 2x as much memory to store as Python 2
 
 
-bad filenames were easy to create in python 2
-
-If you ever see a \lstinline{\udcxx} character, it means that a non-decodable byte was passed in from a system interface
-
-s.decode('utf-8','surrogateescape')
-
-TextIOWrapper 10 times faster than codecs.open
-
-basestring
 
 %All backslashes in raw string literals are interpreted literally. This means that '\U' and '\u' escapes in raw strings are not treated specially. For example, r'\u20ac' is a string of 6 characters in Python 3.0, whereas in 2.6, ur'\u20ac' was the single “euro” character. (Of course, this change only affects raw string literals; the euro character is '\u20ac' in Python 3.0.)
 
-% has been removed and reinstroduced
-
-pathlib
-
-%# coding: utf8
 
 \section{file()}
 
@@ -234,9 +340,9 @@ from io import IOBase
 if isinstance(someobj, IOBase):
 \end{py2}
 
-\section{from buffer() tp memoryview()}
+\section{from buffer() to memoryview()}
 
-Those two functions respectively create objects of the same name - a \lstinline{buffer} and a \lstinline{memoryview}. Both are a way to get a subset of something without copying it:
+Those two functions (in fact, they are more like classes) respectively create objects of the same name - a \lstinline{buffer} and a \lstinline{memoryview}. Both are a way to get a subset of something without copying it:
 
 \begin{py2}
 >>> donkey_lines = "Are we there yet ?\n" * 10000
@@ -268,11 +374,11 @@ w
 e
 \end{py2}
 
-It works on \lstinline{bytes()}, \lstinline{bytearray}, \lstinline{array.array}...Everything that implements the so-called \textquote{buffer protocol}. This is a very nice optimization that can save quite a lot of memory/CPU if you manipulate huge chunks of bytes and pass around subset of them, e.g: to files or sockets.
+It works on \lstinline{bytes()}, \lstinline{bytearray}, \lstinline{array.array}...Everything that implements an \gls{API} called the \textquote{buffer protocol}. This is a very nice optimization that can save quite a lot of memory/CPU if you manipulate huge chunks of bytes and pass around subset of them, e.g: to files or sockets.
 
-With the rise of performant c libs wrapped in Python (numpy, GUI toolkits, database drivers, etc.), the need for more information about the underlying data than what \lstinline{buffer()} was offering became important. \lstinline{memoryview} provides an answer to that, being able to return the shape, dimension or type or the object behind it.
+With the rise of performant C libs wrapped in Python (numpy, GUI toolkits, database drivers, etc.), the need for more information about the underlying data than what \lstinline{buffer()} was offering became important. \lstinline{memoryview} provides an answer to that, being able to return the shape, dimension or type of the object behind it.
 
-\lstinline{buffer()} is not more in Python 3, just replace it with \lstinline{memoryview()}. The later exists in Python 2.7, plus it does the same thing, just better. The only difficulty will be that \lstinline{buffer()} accepts \lstinline{unicode()} objects but \lstinline{memoryview()} only accept bytes, and so you'll need to encode them.
+\lstinline{buffer()} is no more in Python 3, just replace it with \lstinline{memoryview()}. The later exists in Python 2.7, plus it does the same thing, just better. The only difficulty will be that \lstinline{buffer()} accepts \lstinline{unicode()} objects but \lstinline{memoryview()} only accept bytes, and so you'll need to encode them.
 
 So:
 
