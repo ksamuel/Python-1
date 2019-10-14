@@ -187,6 +187,20 @@ from io import open
 
 This does nothing in Python 3 and provides you with the \lstinline{open()} from Python 3 in Python 2.
 
+As as side note, \lstinline{file()} doesn't exist in Python 2, and you really should use \lstinline{open()} instead. If you used it for an \lstinline{isinstance()} check, use \lstinline{io.open()}, then make a check with \lstinline{io.IOBase} instead. If you have to support both Python 2 and 3, and may receive a \lstinline{file()} from some code you don't have control over, you can alway do a conditional:
+
+\begin{py2and3}
+import sys
+import io
+
+if sys.version_info.major < 3:
+    file_types = (io.IOBase, file)
+else:
+    file_types = (io.IOBase,)
+\end{py2and3}
+
+And call \lstinline{isinstance()} on that.
+
 \section{Fun with file paths}
 
 File paths are one of those features that just fork 99\% of the time, until it doesn't. One reason is that Python is a cross-plateform language, but different operating systems may treat paths differently.
@@ -316,6 +330,7 @@ Again, I'd like to insist those are not common use cases. Python softwares that 
 
 I also know it is tempting to use the excellent \lstinline{pathlib} at this point, especially since there is a backport on pypi. But in my opinion, it would add complexity to the migration. Better keep it for the new python-3-only projects.
 
+
 \section{Formatting}
 
 In Python 2, you could call \lstinline{.format()} on both \lstinline{str()} and \lstinline{unicode()}. This ability has been removed in Python 3: only text can be formatted this way, or using the newest f-strings.
@@ -324,21 +339,61 @@ For a while, Python 3 also removed the possibility to format using \lstinline{\%
 
 If your bytes are text, you should decode anyway, so you'll be able to format all you want. If your bytes need to be manipulated as-is, then either you must target Python 3.5, or change all your byte formatting code for something you do manually. Given the work the later option represent, I would advise to just target 3.5 if you have a lot of bytes to format.
 
-\section{Wait, there is I/O}
+One other thing to remember is that formatting string using the \lstinline{r} prefix changed from Python 2 to Python 3. Normally, Python treat any \lstinline{\\} (anti-slask) in a string \gls{literal} in a spacial way: if you us \lstinline{\\n} it will insert a line break, if you use \lstinline{\\t} it will insert a tab, if you use  \lstinline{\\uxxx} it will insert a unicode character matching the code point in \textquote{xxx}, etc. This does not happen when the string is created in another way: only with string literals, so only with hardcoded strings.
 
+Sometime, however, this feature must be disabled so you can actually insert an anti-slash. The typical example is the use of hard-coded windows file paths (although many Win \gls{API} now accept forward ones as well):
 
+\begin{py3}
+>>> print("C:\Program Files\Nope")
+File "<stdin>", line 1
+SyntaxError: (unicode error) 'unicodeescape' codec can't decode bytes in position 16-17: malformed \N character escape
+>>> print("C:\Program Files\nope")
+C:\Program Files
+ope
+\end{py3}
 
+One simple solution is to escape the anti-slash... with another one:
 
-%All backslashes in raw string literals are interpreted literally. This means that '\U' and '\u' escapes in raw strings are not treated specially. For example, r'\u20ac' is a string of 6 characters in Python 3.0, whereas in 2.6, ur'\u20ac' was the single “euro” character. (Of course, this change only affects raw string literals; the euro character is '\u20ac' in Python 3.0.)
+\begin{py3}
+>>> print("C:\\Program Files\\Nope")
+C:\Program Files\Nope
+>>> print("C:\\Program Files\\nope")
+C:\Program Files\nope
+\end{py3}
 
+Since it is annoying to do so, Python allow you to use the \lstinline{r} prefix to just disable any special interpretation of \lstinline{\\}:
 
-\section{file()}
+\begin{py3}
+>>> print(r"C:\Program Files\Nope")
+C:\Program Files\Nope
+>>> print(r"C:\Program Files\nope")
+C:\Program Files\nope
+\end{py3}
+
+But Python 2 used to still interpret unicode escape:
 
 \begin{py2}
-from io import IOBase
-
-if isinstance(someobj, IOBase):
+>>> print(ur'\u20ac')
+€
 \end{py2}
+
+Not only Python 3 doesn't, it actually doesn't accept mixing \lstinline{u} and \lstinline{r} at all:
+
+\begin{py3}
+>>> print(ur'\u20ac')
+File "<stdin>", line 1
+    print(ur'\u20ac')
+                    ^
+SyntaxError: invalid syntax
+\end{py3}
+
+So use \lstinline{__future__}, and go back to manually escaping if you must use unicode escape codes. I would advise no to if you can, and just use UTF8 and add the literal a caracter. This way way you don't have to bother and it works either way:
+
+\begin{py2and3}
+# coding: utf8
+from __future__ import unicode_literals
+print(r'\€/') # Happy euro sign :)
+\end{py2and3}
 
 \section{from buffer() to memoryview()}
 
@@ -396,12 +451,3 @@ for i in range(0, stop, step):
     send_those_bytes(buffer(tps_reports, i, step))
 
 \end{py2}
-
-
-
-
-
-
-buffer. Par exemple, pour écrire des octets sur stdout, utilisez sys.stdout.buffer.write(b'abc').
-
-unfortunately, changing sys.stdout to accept only unicode breaks a lot of libraries that expect it to accept encoded bytestrings. – nosklo Dec 4 '09 at 19:14
