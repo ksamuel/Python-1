@@ -1,0 +1,94 @@
+\chapter{How not to migrate}
+
+The first Python 3 release was in 2008. It's fair to say that among people reading this book, published in 2019, some postponed the migration as much as they could.
+
+Maybe they didn't have the time or the resources.
+
+Maybe they didn't have the knowledge.
+
+Maybe they didn't see a good cost/benefit ratio in this endavor.
+
+So what about just not doing it?
+
+\section{The cost of migrating}
+
+How expensive is porting Python 2 code? If it's just a bunch a small scripts here and there, every .py file can be ported in a few minutes. The price then rise for each line of code, each external dependancy, espacially C extensions. The worst case scenario is when your Python code is a a plugin for an embedded interpretter in another program (QGIS, Blender, etc): you are tied to the software editor.
+
+Anyway, there is no sure way to assess the time, energy and skill you'll need.
+
+A collection of data analysis scripts may be a matter of a few hours with the proper knowledge. A fair sized Django website can take a few days. A GUI app may very well take a few weeks. Complicated libraries like numpy or twited took months. I know at least one project that had one million lines of code that started in Python 2.5 with plenty of customizations to the interpretter: it will never get ported.
+
+Of course, porting means working on something that doesn't produce immediat value. And it implies sometimes also porting or replacing dependancies, which is an additional expense with zero benefit.
+
+Consider as well that porting anything with more than 5000 lines of code without some kind of automatic testing is not realistic. Projects that waited more than a decade to upgrade could also lack this kind of infrastructure. In this case, the cost doubles: you need to add testing first. A good idea in any case, but not a free one.
+
+If you decided that you need a hybrid Python 2/3 support, the transition will be even more costly: it's longer, harder, and makes the code more complicated.
+
+At last, performances may suffer for a release or too. If you have a lot of pure Python text/numeric calculation, you may very well take a definitive performance hit.
+
+All good reasons to decide not undergo the migration at all. Actually, some project, faced with this decision, decided to rewrite everything in another language entirely.
+
+However, despite all those gloomy predictions, most code bases I encountered in my professionnal life could be ported in under 2 weeks, and without too much hassle. It's was boring, repetitive work, not hard work. It's easy to picture the task as bigger as it really is, yet we are not all Google-scale corporations.
+
+After the port, most of the knowledge gained from the initial version, the fixed bugs and the documentation where still relevant in the new one. Not to mention team training and tooling. In the end, it's not only a lower price than expected, but precious assets preserved.
+
+And of course, there are benefits you get after the migration.
+
+On the other hand, staying on Python 2.7 means paying some price as well.
+
+\section{The cost of not migrating}
+
+The usual line for pushing people to migrate is about all the things you'd gain once on Python 3: sane I/O support, easier maintenance and debugging, cleaner syntax, nice features and goodies... Indeed, I can voutch for that: coding in Python 3, espacially in 3.6 and after, is a vastly superior experience. It's not about one huge thing that makes it all better, but rather the collection of the thousand things that add up on the long run. You don't see it at first, but once you got back to Python 2, it hurts!
+
+Then again, given the cost of migrating, a carrot alone is not enough. What's the stick then ?
+
+First, Python 2.7 will obviously loose any official support, meaning no bug fix, and no security patch. This also means it won't be easily installable on future systems. E.G: Python 3.4 is the last one that can be installed on Windows XP. Ubuntu 20.04 plan to be Python 3 only. OS in the future may very well not be able to run cPython 2.7 out of the box.
+
+But the real problem are the dependancies. Many popular libraries, like Django and Numpy, already dropped support for 2.7 in their latest release. New tools, such as the recently very popular code formatter "black", only supports modern Python versions.
+
+Not migrating means that, little by little, you cut yourself from the rest of the Python ecosystem. And it's one of the biggest strength of the language.
+
+Nevertheless, let's assume you made the decision to not migrate, what are your options ?
+
+\section{Python 2.7 executable will keep working}
+
+As you may have guessed, the Python 2.7 executable is not going to self destruct on january the 1st, 2020. In fact, we can expect all binaries and source code to be still available for download from python.org, since it already lists legacy ones down to Python 2.0.1!
+
+So not only your program will keep working, but you will still be able to install it on other machines.
+
+The \gls{EOL} is simply means the official Python developpement team will stop working on it. This means any new bug or security flaw found will never be addressed by the core devs.
+
+Even in the unlikely event that you can't use or get the legacy cPython 2.7 executable, there are still alternatives. First, Python being free software, the sources are and will always be available, meaning you can compile it. This ensure than not only you can always produce an executable for you current plateform, but you can potentially adapt it to a new plateform. Tools like \href{https://github.com/pyenv/pyenv}{pyenv} make this solution even easier.
+
+If you don't rely on many c-extensions, another alternative is to use \href{https://pypy.org}{pypy}, an Python implementation written... in Python. It's slow to startup, but very fast after a few seconds of warm up, thanks to it's Just In Time compiler. While it only supported a limited sets of c-extensions, it's highly compatible with Python 2.7 and 3.6, and the authors says they'll support the 2.7 version ad-vitam. There is even a \href{https://github.com/squeaky-pl/portable-pypy}{portable version for Linux} that doesn't require any installation.
+
+Talking about Linux, many distribution have LTS releases, supported for 5 years, that included Python 2.7, and hence will have to support it for the upcomming years. E.G: Ubuntu 18.04 includes Python 2.7 and will be supported until 2023.
+
+Most Mac also come with Python 2.7 embeded, and it's not going to be stripped from currently deployed systems.
+
+I also assume community managed repositories such as \href{https://www.linuxtricks.fr/wiki/centos-rhel-ajouter-des-depots-supplementaires}{Centos EPEL} or \href{https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa}{Ubuntu deadsnake ppa} will keep old versions around.
+
+\section{Distributing}
+
+Distributing your software is going to be trickier. You can play cat and mouse with the interpretter, but your user may not have this patience. And there is also the problem of dependancies.
+
+You may want to list all the dependancies of your project (\lstinline{pip freeze > requirements.txt} in your virtualenv will do the job) with the precise versions that works with your project. You can then download them individually (\lstinline{pip download -r requirements.txt}will dump them in the current dir).
+
+Indeed, nobody can know if they will all still be around past 2020: you are at the mercy of the numerous lib authors.
+
+Of course, having so many files to distribute is not very convenient. To solve this problem, you have three choices:
+
+\begin{itemize}
+
+\item If you want to keep the traditional \lstinline{pip install} workflow, you can install your own instance of \href{https://github.com/pypa/warehouse}{warehouse}. This is the software running pypi.org, the source pip uses to download packages, and it's open source . You can setup your own with just the packages you need and use \lstinline{pip install --index-url <your_warehouse_domain>} from now on.
+\item You can bunddle your entire virtualenv into one big zip and ship that. \href{https://github.com/pantsbuild/pex}{pex} is an utility built by Twitter that does exactly this (but only for Linux). Finding the proper incantation to make it work can be a challenge. I just copy paste this again and again: \lstinline{pex . -r requirements.txt -o entre_point_of_your_project.pex --python python2.7 -c entre_point_of_your_project.py -f dist --disable-cache}. The resulting file will contain your project and all it's dependancies, still require the Python executable, but will run like a standalone script other than this.
+\item You can compile your entire project into a totally stand alone executable that not only embeds all dependancies, but also the entire Python runtime. This is a very nice way to provide a Python project to non technical user. Several tools exist to do this: cv_freeze, py2exe, py2app, etc. Of all of them, I can warmly recommand the excellent \href{nuitka.net}{nuitka}: it's very robust, provide a nice performance boost and reliably work on Windows, Linux and Mac. It's a bit hard to setup, as you'll need to install a compiler and Python headers. E.G: clang on Mac  (if you got homebrew it's \lstinline{brew install --with-toolchain llvm}), gcc on Linux (ubuntu will need \lstinline{apt install build-essential python-dev}, centos will need \lstinline{yum groupinstall "Development Tools" and yum install python-devel})) and \href{https://sourceforge.net/projects/mingw-w64/}{MinGw-w64} on Windows. In the simplest case, \lstinline{python -m nuitka your_project_entre_point.py  --standalone} will work. And for the other, you'll have to read the doc.
+\end{itemize}
+
+Finally, if you distribute your software and the main component, Python 2.7, is not supported anymore, you may have legal and business issues. For this particular scenario, you want to look for commercial support. It is highly likely that some companies will be happy to charge you for taking care of the extented support you need for Python 2.7. As I write this book, I haven't encountered an offer in the wild, but I'd knock at the door of institutions like continuum.io if I were shopping for one. They have been around for long enough with a solid custom distribution to be the first I'd call. And no, I have no relation with them what so ever.
+
+\section{Make a plan}
+
+<lire l'article sur pas besoin de migrer depuis 2.7>
+
+Yes, avoiding to do work, is, in the end, still work.

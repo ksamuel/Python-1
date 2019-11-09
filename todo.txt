@@ -45,7 +45,32 @@
 
 >>> f = open("jalape\xf1o.txt")Traceback (most recent call last):...IOError: [Errno 2] No such file or directory: 'jalapeño.txt'>>>
 
+https://morepypy.blogspot.com/2019/10/pypy-v72-released.html
 
 
 
 In early versions of Python 3, such names were silently discarded (made invisible).  Yikes
+
+- ('re', 'ASCII','stat', 'ST_MODE'),
+
+- ajouter non-ascii-bytes-literals pylint et voir autres réglages
+
+
+leanup of the sys module: removed sys.exitfunc(), sys.exc_clear(), sys.exc_type, sys.exc_value, sys.exc_traceback.
+
+Cleanup of the array.array type: the read() and write() methods are gone; use fromfile() and tofile() instead. Also, the 'c' typecode for array is gone – use either 'b' for bytes or 'u' for Unicode characters.
+
+Cleanup of the operator module: removed sequenceIncludes() and isCallable().
+Cleanup of the thread module: acquire_lock() and release_lock() are gone; use acquire() and release() instead.
+Cleanup of the random module: removed the jumpahead() API.
+The new module is gone.
+The functions os.tmpnam(), os.tempnam() and os.tmpfile() have been removed in favor of the tempfile module.
+The tokenize module has been changed to work with bytes. The main entry point is now tokenize.tokenize(), instead of generate_tokens.
+string.letters and its friends (string.lowercase and string.uppercase) are gone. Use string.ascii_letters etc. instead. (The reason for the removal is that string.letters and friends had locale-specific behavior, which is a bad idea for such attractively-named global “constants”.)
+Renamed module __builtin__ to builtins (removing the underscores, adding an ‘s’). The __builtins__ variable found in most global namespaces is unchanged. To modify a builtin, you should use builtins, not __builtins__!
+
+
+- https://github.com/squeaky-pl/portable-pypy
+
+
+There is a catastrophic bug in the Python curses module in 3.4.0: http://bugs.python.org/issue21088

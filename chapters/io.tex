@@ -5,6 +5,17 @@ Finally, we get to the point!
 
 If you jumped to this chapter, remember we assume you perfectly undertstand what was in the previous one. Most people don't, so you may want to read it.
 
+\section{Summary}
+
+\begin{labeling}{summary}
+    \item [Code file encoding]: set your editor to UTF8, use # coding: utf8
+    \item [Properly using bytes(), str() and unicode()]: use __future__ then mark bytes manually
+    \item [Opening files]: use \lstinline{io.open(),} specify \lstinline{encoding} for text and \lstinline{b} the rest.
+    \item [Fun with file paths]: migrate code and on-disk files to utf8, use surrogateescape
+    \item [Formatting]: use Python 3.5 if you format a lot of bytes
+    \item [from buffer() to memoryview()]: replace \lstinline{buffer()} by \lstinline{memoryview()} but make sure you only pass \lstinline{bytes()}
+\end{labeling}
+
 \section{Code file encoding}
 
 First, you should make sure you use the best practices in your Python 2 code before moving to Python 3. To do so, ensure you know the encoding of all the code files in your project. Ideally, it should be UTF-8.

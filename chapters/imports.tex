@@ -1,0 +1,32 @@
+
+\chapter{Imports}
+
+
+\section{Name and location changes}
+
+In the process of cleaning the standard library, several modules and objects have been moved around or renamed. It's straighforward, although boring, to deal with in the process of migration, because the changes are well documented, easy to compensate for, and the tooling has excellent support. Therefor, while I will demonstrate manual fixes for all of those since I can't assume anything about your constraintes, I would even more strongly recommand tooling for this issue in particular.
+
+The main manual technic to solve this mismatch is to replace the old import with the new Python 3 location/name, or if 2/3 support is desired, perform a conditional import:
+
+\begin{py2and3}
+try:
+    # attempt to import using the old name or place
+except ImportError:
+    # use the new name or place
+\end{py2and3}
+
+
+
+
+
+\section{Import semantics}
+
+https://docs.python.org/3.0/whatsnew/3.0.html
+
+
+
+%https://python-future.org/compatible_idioms.html#standard-library
+
+
+
+
